@@ -42,6 +42,12 @@ textarea.input { padding: 12px 14px; min-height: 84px; resize: vertical; }
 
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .chip { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 14px; border: 0; border-radius: 20px; background: var(--chip); font-size: 13px; font-weight: 600; cursor: pointer; }
+.chips.grid { display: grid; grid-template-columns: 1fr 1fr; }
+.chips.grid .chip { min-width: 0; }
+.chips.grid .chip { justify-content: flex-start; min-height: 52px; padding: 0 12px; text-align: left; color: var(--ink); }
+.chip-text { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
+.chip-text b { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chip-text small { color: var(--muted); font-size: 12px; font-weight: 600; }
 .chip.on { background: #14201b; color: #fff; }
 .seg { display: flex; background: var(--chip); border-radius: 14px; padding: 3px; gap: 3px; }
 .seg button { flex: 1; min-height: 40px; border: 0; border-radius: 11px; background: transparent; font-weight: 700; font-size: 13px; cursor: pointer; }

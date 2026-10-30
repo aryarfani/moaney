@@ -68,10 +68,10 @@ export function HomePage() {
       {chips.length > 0 && (
         <section aria-label="Log again">
           <h2>Log again</h2>
-          <div className="chips" style={{ marginTop: 8 }}>
+          <div className="chips grid" style={{ marginTop: 8 }}>
             {chips.map((c) => (
               <button key={`${c.description}-${c.categoryId}`} className="chip" onClick={() => logAgain(c)}>
-                <span aria-hidden="true">{category(c.categoryId)?.emoji}</span>{c.description} · {money(c.amount)}
+                <span aria-hidden="true">{category(c.categoryId)?.emoji}</span><span className="chip-text"><b>{c.description}</b><small>{money(c.amount)}</small></span>
               </button>
             ))}
           </div>
