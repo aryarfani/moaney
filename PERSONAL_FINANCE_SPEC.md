@@ -242,7 +242,7 @@ Mobile-first. Bottom navigation: **Home · History · Reports · Wallets · Add*
   "source_package": "com.gojek.gopay",
   "posted_at": "2026-10-30T10:25:00+07:00",
   "title": "Transfer berhasil",
-  "text": "Rp10.000 udah dikirim ke BCA A RIFQI YARZUQ ARFANI.",
+  "text": "Rp10.000 udah dikirim ke BCA OWNER FULL NAME.",
   "schema_version": 1
 }
 ```
@@ -274,7 +274,7 @@ Package names below are to be confirmed from the first collected samples.
 | Source | Package (to verify) | Language / number format | Example |
 |---|---|---|---|
 | BCA (myBCA "Financial Diary") | `com.bca.mybca.omni.android` | English; `IDR 10,000.00` (comma thousands, dot decimals) | Title `Financial Diary` — `You received IDR 10,000.00 from ***PET **AK ***GSA at Account Transfer category.` |
-| GoPay | `com.gojek.gopay` | Indonesian; `Rp10.000` (dot thousands, no decimals) | Title `Transfer berhasil` — `Rp10.000 udah dikirim ke BCA A RIFQI YARZUQ ARFANI.` |
+| GoPay | `com.gojek.gopay` | Indonesian; `Rp10.000` (dot thousands, no decimals) | Title `Transfer berhasil` — `Rp10.000 udah dikirim ke BCA OWNER FULL NAME.` |
 | Jago | TBD | TBD | Samples needed |
 
 Observations from the first samples:
@@ -291,7 +291,7 @@ Each sample becomes a sanitised fixture in `test/fixtures/notifications/<source>
 
 **Self-transfer pairing.** One movement between own wallets often produces two notifications (e.g. GoPay "dikirim ke BCA <owner name>" at 10:25 and BCA "You received IDR 10,000.00" at 10:25).
 
-- Configuration: owner name aliases (e.g. `A RIFQI YARZUQ ARFANI`) and which banks/e-wallets are owned.
+- Configuration: owner name aliases (e.g. `OWNER FULL NAME`) and which banks/e-wallets are owned.
 - An outgoing notification whose recipient matches an owner alias at an owned institution becomes a **transfer** candidate to that wallet.
 - An incoming notification on another owned wallet, same amount (or amount minus a known fee), within a time window (default ±10 minutes) is **linked as the other side**, not recorded as income.
 - If only one side arrives, the transfer is still recorded from that side; the late arrival of the other side links to it instead of creating a new transaction.
@@ -309,7 +309,7 @@ Each sample becomes a sanitised fixture in `test/fixtures/notifications/<source>
   "amount": "10000",
   "currency": "IDR",
   "occurred_at": "2026-10-30T10:25:00+07:00",
-  "counterparty": "A RIFQI YARZUQ ARFANI",
+  "counterparty": "OWNER FULL NAME",
   "counterparty_institution": "BCA",
   "wallet_hint": "GoPay",
   "category_hint": null,
@@ -612,7 +612,7 @@ Mutations validate with shared Zod schemas; create/ingest/review endpoints accep
 
 1. **Expense:** a GoPay QRIS payment of Rp35,000 produces one expense and lowers the GoPay balance by Rp35,000.
 2. **Idempotency:** the same device event sent 10 times yields one candidate and at most one transaction.
-3. **Self-transfer pairing:** GoPay `Rp10.000 udah dikirim ke BCA A RIFQI YARZUQ ARFANI.` and BCA `You received IDR 10,000.00 …` at the same minute produce **one** transfer GoPay → BCA; income and expense totals are unchanged.
+3. **Self-transfer pairing:** GoPay `Rp10.000 udah dikirim ke BCA OWNER FULL NAME.` and BCA `You received IDR 10,000.00 …` at the same minute produce **one** transfer GoPay → BCA; income and expense totals are unchanged.
 4. **One side only:** if only the GoPay side arrives, a transfer is still recorded; a later BCA notification links to it.
 5. **Number formats:** BCA `IDR 10,000.00` and GoPay `Rp10.000` both parse to 1,000,000 minor units.
 6. **Ambiguity:** a notification without a clear amount or direction stays in review and affects no balance.
@@ -631,7 +631,7 @@ Mutations validate with shared Zod schemas; create/ingest/review endpoints accep
 ## 16. Open decisions
 
 1. **Remaining notification samples:** Jago (all types), GoPay payments/top-ups/Gojek services, BCA debits, transfer fees.
-2. **Owner name aliases and owned institutions** for pairing (initially `A RIFQI YARZUQ ARFANI`; BCA, GoPay, Jago).
+2. **Owner name aliases and owned institutions** for pairing (initially `OWNER FULL NAME`; BCA, GoPay, Jago).
 3. **Auto-post enablement:** per source/parser after a measured review period.
 4. **Opening balances:** dated opening-balance entries per wallet on the start date.
 5. **Retention window** for raw notification text (default 30 days).
