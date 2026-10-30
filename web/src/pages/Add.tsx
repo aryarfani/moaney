@@ -62,7 +62,7 @@ export function AddPage() {
           <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <label htmlFor="free" className="muted small" style={{ fontWeight: 700 }}>Type one or more payments</label>
             <textarea id="free" className="input" value={text} onChange={(e) => { setText(e.target.value); setProposals([]); }} placeholder="kopi 28k gopay dan parkir 3k" />
-            <div className="muted small">Examples: nasbung 16k · gaji 8jt bca · transfer bca ke gopay 500k</div>
+            <div className="muted small">Examples: nasbung 16k · nasbung 16k @2 (two entries) · nasbung 16k x2 (one entry, 32k) · gaji 8jt bca</div>
             <button className="btn" disabled={!text.trim() || busy} onClick={parse}>Read it</button>
           </div>
 

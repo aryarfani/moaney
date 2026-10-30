@@ -55,6 +55,22 @@ describe('typed entry', () => {
     expect(parseEntries('kopi', ctx)[0]!.problems).toContain('No amount found');
     expect(parseEntries('kopi 10k pakai ovo', ctx)[0]!.problems.join()).toMatch(/Unknown wallet/);
   });
+  it('"@2" makes two separate entries, each with the full amount and learned category', () => {
+    const r = parseEntries('kopi 28k @2 gopay', ctx);
+    expect(r).toHaveLength(2);
+    for (const p of r) expect(p).toMatchObject({ description: 'kopi', amount: 2_800_000, walletId: 3, categoryId: 7, problems: [] });
+  });
+  it('"x2" multiplies the amount into one entry', () => {
+    const r = parseEntries('kopi 16k x2', ctx);
+    expect(r).toHaveLength(1);
+    expect(r[0]).toMatchObject({ description: 'kopi', amount: 3_200_000 });
+    expect(parseEntries('kopi 16k ×3', ctx)[0]!.amount).toBe(4_800_000);
+  });
+  it('applies per item and guards silly counts', () => {
+    expect(parseEntries('kopi 16k @2 dan parkir 3k', ctx).map((p) => p.description)).toEqual(['kopi', 'kopi', 'parkir']);
+    expect(parseEntries('kopi 16k @99', ctx)[0]!.problems.join()).toMatch(/more than 20/);
+    expect(parseEntries('kopi 16k @0', ctx)[0]!.problems.join()).toMatch(/@0/);
+  });
   it('recognises income and transfers', () => {
     expect(parseEntries('gaji 8jt bca', ctx)[0]).toMatchObject({ type: 'income', amount: 800_000_000, walletId: 1, categoryId: 90 });
     expect(parseEntries('transfer bca ke gopay 500k', ctx)[0]).toMatchObject({ type: 'transfer', walletId: 1, toWalletId: 3, amount: 50_000_000 });

@@ -39,12 +39,37 @@ function findWallet(text: string, wallets: Named[]): Named | undefined {
   return wallets.find((w) => w.name.toLowerCase() === t) ?? wallets.find((w) => t.includes(w.name.toLowerCase()));
 }
 
+// "@2" = log it as 2 separate entries; "x2" = multiply the amount (16k x2 = 32k, one entry).
+const COUNT = /(?:^|\s)@(\d{1,3})(?=\s|$)/;
+const MULT = /(?:^|\s)[x×](\d{1,3})(?=\s|$)/i;
+export const MAX_COPIES = 20;
+
 export function parseEntries(text: string, ctx: ParseContext): Proposal[] {
   return text
     .split(SPLIT)
     .map((s) => s.trim())
     .filter(Boolean)
-    .map((raw) => parseOne(raw, ctx));
+    .flatMap((raw) => {
+      const count = Number(COUNT.exec(raw)?.[1] ?? 1);
+      const mult = Number(MULT.exec(raw)?.[1] ?? 1);
+      const cleaned = raw.replace(COUNT, ' ').replace(MULT, ' ').replace(/\s+/g, ' ').trim();
+      const one = parseOne(cleaned, ctx);
+      one.raw = raw;
+      if (mult > 1 && one.amount !== null) {
+        const total = one.amount * mult;
+        if (Number.isSafeInteger(total)) one.amount = total;
+        else one.problems.push('Amount too large');
+      }
+      if (count > MAX_COPIES) {
+        one.problems.push(`@${count} is more than ${MAX_COPIES} copies`);
+        return [one];
+      }
+      if (count === 0) {
+        one.problems.push('@0 logs nothing');
+        return [one];
+      }
+      return Array.from({ length: count }, () => ({ ...one, problems: [...one.problems] }));
+    });
 }
 
 function parseOne(raw: string, ctx: ParseContext): Proposal {
