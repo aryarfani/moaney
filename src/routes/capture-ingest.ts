@@ -17,6 +17,23 @@ const body = z.object({
   postedAt: z.union([z.number(), z.string().max(40)]).optional(),
 });
 
+/** Phones send whatever their automation app builds, so accept JSON, form encoding, or JSON broken by unescaped quotes in the text. */
+export function parseBody(raw: unknown): unknown {
+  if (typeof raw !== 'string') return raw;
+  const t = raw.trim();
+  try {
+    return JSON.parse(t);
+  } catch {
+    // fall through
+  }
+  if (!t.startsWith('{')) {
+    const f = new URLSearchParams(t);
+    if (f.has('text')) return Object.fromEntries(f);
+  }
+  const field = (name: string) => new RegExp(String.raw`"${name}"\s*:\s*"([\s\S]*?)"\s*(?:,\s*"(?:app|title|text|postedAt)"\s*:|\}\s*$)`).exec(t)?.[1];
+  return { app: field('app'), title: field('title'), text: field('text'), postedAt: field('postedAt') };
+}
+
 function postedAt(v: number | string | undefined): string {
   if (v === undefined) return jakartaNow();
   const d = new Date(typeof v === 'string' && /^\d{10,}$/.test(v) ? Number(v) : v);
@@ -46,7 +63,7 @@ export function captureIngestRouter(db: Db): Router {
       res.status(429).json({ error: 'Slow down' });
       return;
     }
-    const input = body.parse(req.body);
+    const input = body.parse(parseBody(req.body));
     db.update(devices).set({ lastSeenAt: jakartaNow() }).where(eq(devices.id, device.id)).run();
 
     const app = normaliseApp(input.app);

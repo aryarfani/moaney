@@ -25,6 +25,8 @@ export function createApp(handle: DbHandle, config: Config, webRoot = WEB_DIR): 
     });
     next();
   });
+  // The phone's automation app may send malformed JSON; read the raw text and let the route be forgiving.
+  app.use('/api/v1/capture/notifications', express.text({ type: () => true, limit: '64kb' }));
   app.use(express.json({ limit: '25mb' }));
   app.use(cookieParser());
 

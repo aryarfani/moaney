@@ -246,3 +246,13 @@ describe('capture ingest', () => {
     expect(rows[1]!.text).toContain('Toko B');
   });
 });
+
+import { parseBody } from '../src/routes/capture-ingest.js';
+
+describe('ingest body parsing', () => {
+  it('accepts valid JSON, form encoding and JSON broken by quotes in the text', () => {
+    expect(parseBody('{"app":"gopay","text":"Rp10.000"}')).toMatchObject({ app: 'gopay', text: 'Rp10.000' });
+    expect(parseBody('app=gopay&title=Hi&text=Rp10.000+masuk')).toMatchObject({ app: 'gopay', text: 'Rp10.000 masuk' });
+    expect(parseBody('{"app":"gopay","title":"GoPay","text":"Kamu "bayar" Rp47.000 ke GrabCar"}')).toMatchObject({ app: 'gopay', text: 'Kamu "bayar" Rp47.000 ke GrabCar' });
+  });
+});
