@@ -1,9 +1,10 @@
 :root {
   --h0: #e6eee9; --h1: #a9d9c2; --h2: #4dae86; --h3: #0e7a55;
   --over: #b3391a; --prev-line: #9aa7a0;
+  --t1: #0f2a1e; --t2: #ffffff; --t3: #ffffff;
 }
 @media (prefers-color-scheme: dark) {
-  :root { --h0: #243029; --h1: #25513f; --h2: #2f8a66; --h3: #5fd3a2; --over: #ff8d70; --prev-line: #7f8f86; }
+  :root { --h0: #243029; --h1: #25513f; --h2: #2f8a66; --h3: #5fd3a2; --over: #ff8d70; --prev-line: #7f8f86; --t1: #d7efe4; --t2: #ffffff; --t3: #0b2a1d; }
 }
 
 .period-pill { display: flex; align-items: center; background: var(--card); border-radius: 22px; height: 44px; }
@@ -12,10 +13,10 @@
 .period-pill span { font-weight: 700; font-size: 14px; min-width: 70px; text-align: center; white-space: nowrap; }
 
 .heat { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
-.heat .cell { aspect-ratio: 1 / 1; border-radius: 6px; background: var(--h0); }
-.heat .cell.l1 { background: var(--h1); }
-.heat .cell.l2 { background: var(--h2); }
-.heat .cell.l3 { background: var(--h3); }
+.heat .cell { aspect-ratio: 1 / 1; border-radius: 6px; background: var(--h0); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--ink); overflow: hidden; }
+.heat .cell.l1 { background: var(--h1); color: var(--t1); }
+.heat .cell.l2 { background: var(--h2); color: var(--t2); }
+.heat .cell.l3 { background: var(--h3); color: var(--t3); }
 .heat .cell.blank { background: transparent; }
 .heat-head { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; text-align: center; font-size: 10px; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
 .legend { display: flex; justify-content: flex-end; align-items: center; gap: 6px; margin-top: 8px; font-size: 11px; color: var(--muted); }

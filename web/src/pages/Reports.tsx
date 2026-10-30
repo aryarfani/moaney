@@ -18,14 +18,14 @@ function Chevron({ dir }: { dir: 'left' | 'right' }) {
   );
 }
 
-function Heatmap({ data, money }: { data: Overview; money: (n: number) => string }) {
+function Heatmap({ data, money, compact }: { data: Overview; money: (n: number) => string; compact: (n: number) => string }) {
   const max = Math.max(0, ...data.trend.map((t) => t.total));
   return (
     <div role="img" aria-label={`Calendar heatmap of daily spending for ${data.label}. Darker means more spent.`}>
       <div className="heat-head">{WEEKDAYS.map((d, i) => <span key={i}>{d}</span>)}</div>
       <div className="heat">
         {Array.from({ length: data.leadingBlanks }, (_, i) => <div key={`b${i}`} className="cell blank" />)}
-        {data.trend.map((t) => <div key={t.key} className={`cell l${level(t.total, max)}`} title={`${t.label}: ${money(t.total)}`} />)}
+        {data.trend.map((t) => <div key={t.key} className={`cell l${level(t.total, max)}`} title={`${t.label}: ${money(t.total)}`}>{t.total > 0 && compact(t.total).replace('Rp', '')}</div>)}
       </div>
       <div className="legend">
         <span>less</span><i style={{ background: 'var(--h0)' }} /><i style={{ background: 'var(--h1)' }} /><i style={{ background: 'var(--h2)' }} /><i style={{ background: 'var(--h3)' }} /><span>more</span>
@@ -135,7 +135,7 @@ export function ReportsPage() {
                   <b>{data.period === 'yearly' ? 'Monthly trend' : 'Daily trend'}</b>
                   <span className="muted">avg {compact(data.avgPerDay)}/day</span>
                 </div>
-                {data.period === 'monthly' ? <Heatmap data={data} money={money} /> : <BarTrend data={data} compact={compact} />}
+                {data.period === 'monthly' ? <Heatmap data={data} money={money} compact={compact} /> : <BarTrend data={data} compact={compact} />}
               </div>
             )}
           </section>
