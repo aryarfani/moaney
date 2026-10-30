@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, type Chip, type Summary, type Txn } from '../api';
+import { capture } from '../api-capture';
 import { TxnRow, TxnSheet } from '../components';
 import { useStore } from '../store';
+import './capture.css';
 
 const jakartaToday = () => new Date(Date.now() + 7 * 3600_000).toISOString().slice(0, 10);
 
@@ -21,11 +23,13 @@ export function HomePage() {
   const [open, setOpen] = useState<Txn | null>(null);
   const [error, setError] = useState('');
   const [logged, setLogged] = useState('');
+  const [review, setReview] = useState(0);
   const date = jakartaToday();
 
   const load = useCallback(async () => {
     try {
-      const [s, t, c] = await Promise.all([api.summary(date), api.transactions({ from: date, to: date, limit: 50 }), api.suggestions()]);
+      const [s, t, c, rv] = await Promise.all([api.summary(date), api.transactions({ from: date, to: date, limit: 50 }), api.suggestions(), capture.pendingCount().catch(() => ({ count: 0 }))]);
+      setReview(rv.count);
       setSummary(s);
       setTodays(t);
       setChips(c.logAgain);
@@ -58,6 +62,13 @@ export function HomePage() {
       </header>
       {error && <div className="notice" role="alert">{error}</div>}
       {logged && <div className="notice" role="status">{logged}</div>}
+
+      {review > 0 && (
+        <Link to="/review" className="review-card">
+          <span className="grow"><b>{review} to review</b><div className="muted small">New notifications are waiting for your OK</div></span>
+          <span aria-hidden="true">→</span>
+        </Link>
+      )}
 
       <section className="card" aria-label="Today">
         <div className="muted small">Spent today</div>
@@ -93,6 +104,8 @@ export function HomePage() {
           ))}
         </section>
       )}
+
+      <Link to="/ask" className="ask-link"><span>Ask Moaney</span><span className="muted small">How much did I spend on…</span></Link>
 
       <h2>Today</h2>
       {todays.length === 0 ? (

@@ -9,6 +9,10 @@ import { categoryByDescription, homeSummary, logAgainChips } from '../domain/ins
 import { createTransaction, LedgerError, updateTransaction, voidTransaction, walletBalances } from '../domain/ledger.js';
 import { parseEntries } from '../domain/parse-entry.js';
 import { today } from '../domain/time.js';
+import { captureRouter } from './capture.js';
+import { investmentsRouter } from './investments.js';
+import { planRouter } from './plan.js';
+import { reportsRouter } from './reports.js';
 
 const id = (req: Request) => {
   const n = Number(req.params.id);
@@ -150,6 +154,11 @@ export function apiRouter(db: Db): Router {
   r.get('/export.csv', (_req, res) => {
     res.type('text/csv').attachment('moaney-transactions.csv').send(exportCsv(db));
   });
+
+  r.use(reportsRouter(db));
+  r.use(planRouter(db));
+  r.use(captureRouter(db));
+  r.use(investmentsRouter(db));
 
   return r;
 }

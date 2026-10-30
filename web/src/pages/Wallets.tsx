@@ -35,7 +35,10 @@ export function WalletsPage() {
 
   return (
     <>
-      <h1>Wallets</h1>
+      <div className="row between">
+        <h1>Wallets</h1>
+        <Link to="/settings" className="btn ghost" style={{ minHeight: 44 }} aria-label="Settings">⚙️ Settings</Link>
+      </div>
       <section className="card" aria-label="Total balance">
         <div className="muted small">Total balance</div>
         <div className="big">{money(total)}</div>
@@ -44,11 +47,11 @@ export function WalletsPage() {
 
       <div className="card flush">
         {counted.map((w) => (
-          <div key={w.id} className="item" style={{ cursor: 'default' }}>
+          <Link key={w.id} to={`/wallets/${w.id}`} className="item" style={{ textDecoration: 'none', color: 'inherit' }}>
             <span className="emoji" aria-hidden="true">{w.emoji}</span>
             <span className="grow"><b>{w.name}</b><div className="muted small">{KINDS.find(([k]) => k === w.kind)?.[1] ?? w.kind}</div></span>
             <span className="amount">{money(w.balance)}</span>
-          </div>
+          </Link>
         ))}
       </div>
 
@@ -79,6 +82,11 @@ export function WalletsPage() {
       ) : (
         <button className="btn ghost" onClick={() => setAdding(true)}>Add a wallet</button>
       )}
+
+      <Link to="/investments" className="item card" style={{ textDecoration: 'none', color: 'inherit', padding: '8px 16px' }}>
+        <span className="emoji" aria-hidden="true">📈</span>
+        <span className="grow"><b>Investments</b><div className="muted small">Holdings, prices and gains</div></span>
+      </Link>
 
       <h2>Data</h2>
       <div className="card flush">

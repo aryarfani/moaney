@@ -1,0 +1,25 @@
+.back-head { display: flex; align-items: center; gap: 12px; padding: 0 4px; }
+.back-btn { width: 44px; height: 44px; border-radius: 22px; background: var(--card); display: flex; align-items: center; justify-content: center; color: var(--ink); flex: none; text-decoration: none; }
+.back-head h1 { font-size: 22px; }
+.tag { display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 12px; background: var(--chip); font-size: 11px; font-weight: 700; color: var(--ink); white-space: nowrap; }
+.tag.warn { background: var(--warn-bg); color: var(--warn); }
+.tag.good { background: var(--chip); color: var(--accent-ink); }
+.bar { height: 8px; border-radius: 4px; background: var(--chip); overflow: hidden; }
+.bar > i { display: block; height: 100%; border-radius: 4px; background: var(--accent); }
+.bar.thick { height: 10px; border-radius: 5px; }
+.bar.amber > i { background: #c98a1b; }
+.bar.over > i { background: var(--danger); }
+.sw { width: 46px; height: 28px; border-radius: 14px; border: 0; background: var(--chip); position: relative; flex: none; cursor: pointer; padding: 0; }
+.sw::after { content: ''; position: absolute; left: 3px; top: 3px; width: 22px; height: 22px; border-radius: 11px; background: #fff; transition: left 0.15s; }
+.sw[aria-checked='true'] { background: var(--accent); }
+.sw[aria-checked='true']::after { left: 21px; }
+.stack { display: flex; flex-direction: column; gap: 10px; }
+.item.plain { cursor: default; }
+a.item { text-decoration: none; color: inherit; }
+.chev { color: var(--muted); font-size: 18px; }
+.amber-card { border: 2px solid #e8b64f; }
+.sub { font-size: 12px; color: var(--muted); }
+.kv { display: flex; justify-content: space-between; align-items: center; font-size: 14px; gap: 12px; }
+.badge { min-width: 22px; height: 22px; padding: 0 6px; border-radius: 11px; background: var(--warn-bg); color: var(--warn); font-size: 12px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; }
+.btn.small { min-height: 44px; padding: 0 16px; font-size: 13px; }
+.btn.outline { background: var(--card); color: var(--ink); border: 1px solid var(--line); }

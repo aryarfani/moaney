@@ -4,6 +4,18 @@ import { BrowserRouter, NavLink, Navigate, Route, Routes } from 'react-router-do
 import { api, setCsrf } from './api';
 import { StoreProvider } from './store';
 import { AddPage } from './pages/Add';
+import { ReportsPage } from './pages/Reports';
+import { AskPage } from './pages/Ask';
+import { WalletDetailPage } from './pages/WalletDetail';
+import { SettingsPage } from './pages/Settings';
+import { CategoriesPage } from './pages/Categories';
+import { GoalsPage } from './pages/Goals';
+import { BillsPage } from './pages/Bills';
+import { DataPage } from './pages/Data';
+import { SourcesPage } from './pages/Sources';
+import { ReviewPage } from './pages/Review';
+import { RulesPage } from './pages/Rules';
+import { InvestmentsPage } from './pages/Investments';
 import { HistoryPage } from './pages/History';
 import { HomePage } from './pages/Home';
 import { ImportPage } from './pages/Import';
@@ -25,6 +37,18 @@ function Shell({ onSignedOut }: { onSignedOut: () => void }) {
           <Route path="/" element={<HomePage />} />
           <Route path="/history" element={<HistoryPage />} />
           <Route path="/wallets" element={<WalletsPage />} />
+          <Route path="/reports" element={<ReportsPage />} />
+          <Route path="/ask" element={<AskPage />} />
+          <Route path="/wallets/:id" element={<WalletDetailPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/settings/categories" element={<CategoriesPage />} />
+          <Route path="/settings/goals" element={<GoalsPage />} />
+          <Route path="/settings/bills" element={<BillsPage />} />
+          <Route path="/settings/data" element={<DataPage />} />
+          <Route path="/settings/sources" element={<SourcesPage />} />
+          <Route path="/settings/rules" element={<RulesPage />} />
+          <Route path="/review" element={<ReviewPage />} />
+          <Route path="/investments" element={<InvestmentsPage />} />
           <Route path="/add" element={<AddPage />} />
           <Route path="/import" element={<ImportPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
@@ -33,6 +57,7 @@ function Shell({ onSignedOut }: { onSignedOut: () => void }) {
       <nav className="nav" aria-label="Main">
         <NavLink to="/" end><Icon d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" />Home</NavLink>
         <NavLink to="/history"><Icon d="M4 6h16M4 12h16M4 18h10" />History</NavLink>
+        <NavLink to="/reports"><Icon d="M5 20V10M12 20V4M19 20v-7" />Reports</NavLink>
         <NavLink to="/wallets"><Icon d="M3 7a2 2 0 0 1 2-2h13v4M3 7v11a2 2 0 0 0 2 2h15V9H5a2 2 0 0 1-2-2zM16 14.5h.01" />Wallets</NavLink>
         <NavLink to="/add"><Icon d="M12 5v14M5 12h14" />Add</NavLink>
       </nav>

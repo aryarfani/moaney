@@ -7,6 +7,7 @@ import type { Config } from './config.js';
 import type { DbHandle } from './db/client.js';
 import { WEB_DIR } from './paths.js';
 import { apiRouter, errorHandler } from './routes/api.js';
+import { captureIngestRouter } from './routes/capture-ingest.js';
 
 export function createApp(handle: DbHandle, config: Config, webRoot = WEB_DIR): Express {
   const { db, raw } = handle;
@@ -65,6 +66,7 @@ export function createApp(handle: DbHandle, config: Config, webRoot = WEB_DIR): 
     res.json({ csrf: req.session!.csrf });
   });
 
+  app.use('/api/v1/capture', captureIngestRouter(db));
   app.use('/api/v1', auth, apiRouter(db));
   app.use('/api', (_req, res) => void res.status(404).json({ error: 'Not found' }));
   app.use(errorHandler);
