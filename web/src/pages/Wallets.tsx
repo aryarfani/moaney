@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, ApiError } from '../api';
 import { useStore } from '../store';
+import { AmountInput } from '../components';
 
 const KINDS = [['bank', 'Bank'], ['ewallet', 'E-wallet'], ['cash', 'Cash'], ['credit_card', 'Credit card'], ['receivable', 'Owed to me']] as const;
 
@@ -19,7 +20,7 @@ export function WalletsPage() {
 
   async function add() {
     setError('');
-    const cleaned = opening.replace(/[,\s]/g, '');
+    const cleaned = opening.replace(/[.\s]/g, '').replace(',', '.');
     if (cleaned && !/^-?\d+(\.\d{1,2})?$/.test(cleaned)) { setError('Opening balance should be a number'); return; }
     const [w = '0', f = ''] = cleaned.replace('-', '').split('.');
     const minor = Number(w + f.padEnd(2, '0')) * (cleaned.startsWith('-') ? -1 : 1);
@@ -71,7 +72,7 @@ export function WalletsPage() {
           <div className="field"><label htmlFor="wk">Type</label>
             <select id="wk" className="input" value={kind} onChange={(e) => setKind(e.target.value)}>{KINDS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select>
           </div>
-          <div className="field"><label htmlFor="wo">Opening balance (Rp)</label><input id="wo" className="input" inputMode="decimal" value={opening} onChange={(e) => setOpening(e.target.value)} placeholder="0" /></div>
+          <div className="field"><label htmlFor="wo">Opening balance (Rp)</label><AmountInput id="wo" className="input" allowNegative value={opening} onChange={setOpening} placeholder="0" /></div>
           {error && <div className="err" role="alert">{error}</div>}
           <div className="row"><button className="btn grow" disabled={!name.trim()}>Add wallet</button><button type="button" className="btn ghost" onClick={() => setAdding(false)}>Cancel</button></div>
         </form>

@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { api, ApiError, type AuditRow, type Txn } from './api';
 import { decimalToMinor, formatMoney } from '../../shared/money';
 import { useStore } from './store';
@@ -41,13 +41,52 @@ export function Sheet({ title, onClose, children }: { title: string; onClose: ()
   );
 }
 
-/** Amount input in whole rupiah (or decimals with a dot); keeps text so the user can type freely. */
-export const toMinor = (text: string) => decimalToMinor(text.replace(/\s/g, '').replace(/,/g, ''), 2);
+/** Amount fields show Indonesian grouping: dot for thousands, comma for decimals ("1.250.000,5"). */
+export function formatAmountText(text: string, allowNegative = false): string {
+  const neg = allowNegative && text.trim().startsWith('-') ? '-' : '';
+  const [whole = '', ...rest] = text.replace(/[^\d,]/g, '').split(',');
+  const grouped = whole.replace(/^0+(?=\d)/, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  const frac = rest.join('').slice(0, 2);
+  return `${neg}${grouped}${rest.length ? ',' + frac : ''}`;
+}
+
+export const toMinor = (text: string) => decimalToMinor(text.replace(/[\s.]/g, '').replace(',', '.'), 2);
 export const toInputAmount = (minor: number) => {
-  const whole = Math.trunc(minor / 100);
   const frac = minor % 100;
-  return frac ? `${whole}.${String(frac).padStart(2, '0')}` : String(whole);
+  return formatAmountText(frac ? `${Math.trunc(minor / 100)},${String(frac).padStart(2, '0')}` : String(Math.trunc(minor / 100)));
 };
+
+/** Text input that regroups digits as you type and keeps the caret next to the digit you edited. */
+export function AmountInput({ value, onChange, allowNegative, ...rest }: {
+  value: string; onChange: (v: string) => void; allowNegative?: boolean;
+} & Omit<React.InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange'>) {
+  const ref = useRef<HTMLInputElement>(null);
+  const caret = useRef<number | null>(null);
+  useLayoutEffect(() => {
+    if (caret.current !== null && ref.current) ref.current.setSelectionRange(caret.current, caret.current);
+    caret.current = null;
+  });
+  return (
+    <input
+      {...rest}
+      ref={ref}
+      inputMode="decimal"
+      value={value}
+      onChange={(e) => {
+        const raw = e.target.value;
+        const pos = e.target.selectionStart ?? raw.length;
+        const sig = (s: string) => s.replace(/[^\d,-]/g, '').length;
+        const next = formatAmountText(raw, allowNegative);
+        // Put the caret after the same number of digits/commas it followed before regrouping.
+        const want = sig(raw.slice(0, pos));
+        let i = 0, seen = 0;
+        while (i < next.length && seen < want) { if (/[\d,-]/.test(next[i]!)) seen++; i++; }
+        caret.current = i;
+        onChange(next);
+      }}
+    />
+  );
+}
 
 interface FormValue {
   type: 'expense' | 'income' | 'transfer';
@@ -80,8 +119,8 @@ export function TxnForm({ initial, submitLabel, onSubmit, busy }: { initial: For
       </div>
       <div className="field">
         <label htmlFor="amt">Amount (Rp)</label>
-        <input id="amt" className="input" inputMode="decimal" value={v.amount} onChange={(e) => set('amount', e.target.value)} placeholder="16000" />
-        {v.amount && !amountOk && <span className="err">Enter a number, e.g. 16000</span>}
+        <AmountInput id="amt" className="input" value={v.amount} onChange={(x) => set('amount', x)} placeholder="16.000" />
+        {v.amount && !amountOk && <span className="err">Enter a number, e.g. 16.000</span>}
       </div>
       <div className="field">
         <label htmlFor="wal">{v.type === 'transfer' ? 'From' : 'Wallet'}</label>
