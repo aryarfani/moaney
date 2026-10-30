@@ -1,0 +1,19 @@
+[Unit]
+Description=Moaney personal finance
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/moaney
+EnvironmentFile=/home/ubuntu/moaney/.env
+ExecStart=/usr/bin/node dist/src/server.js
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/home/ubuntu/moaney/data /home/ubuntu/backups/moaney
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
