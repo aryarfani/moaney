@@ -48,3 +48,11 @@ Follow the `oracle-xclaw` rules: read `docs/operations/vps.md` first, take a bac
 ## CSV format
 
 `date,type,amount,wallet,to_wallet,category,description,note,external_id` (UTF-8, comma separated). Download the template from the Import screen. Blank wallet means "Before Moaney". Re-importing the same file adds nothing.
+
+## Converting a Money Tracker backup
+
+```bash
+npm run convert:money-tracker -- path/to/backup.ckbak transactions.csv
+```
+
+Reads the `.ckbak` (plain SQLite) read-only and writes the canonical `transactions.csv`: Jakarta-time timestamps, trimmed category names, blank wallet (so rows go to "Before Moaney"), `external_id` `mt-<id>` so re-importing is safe. Then import it from Wallets, Import. `*.ckbak` and `*.csv` are git-ignored.

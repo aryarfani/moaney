@@ -15,7 +15,8 @@
     "test": "vitest run",
     "lint": "eslint .",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p web/tsconfig.json --noEmit",
-    "hash-password": "tsx scripts/hash-password.ts"
+    "hash-password": "tsx scripts/hash-password.ts",
+    "convert:money-tracker": "tsx scripts/convert-money-tracker.ts"
   },
   "dependencies": {
     "better-sqlite3": "^13.0.3",

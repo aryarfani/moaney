@@ -5,3 +5,6 @@ data/
 *.log
 .vite/
 coverage/
+*.ckbak
+*.csv
+!test/fixtures/*.csv
