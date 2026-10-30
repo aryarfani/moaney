@@ -78,6 +78,7 @@ export interface ImportPreview {
 let csrf = '';
 export const setCsrf = (t: string) => {
   csrf = t;
+  cache.clear();
 };
 
 export class ApiError extends Error {
@@ -86,7 +87,14 @@ export class ApiError extends Error {
   }
 }
 
-export async function call<T>(method: string, url: string, body?: unknown): Promise<T> {
+// GET responses are kept briefly so going back and forth between pages is instant; any write clears them all.
+interface Cached { at: number; text: string; json: boolean }
+const cache = new Map<string, Cached>();
+const inflight = new Map<string, Promise<Cached>>();
+const ttlFor = (url: string) => (url.startsWith('/capture/pending-count') ? 10_000 : url.startsWith('/capture/pending') || url.startsWith('/auth') ? 0 : 30_000);
+const parse = <T>(c: Cached) => (c.json ? JSON.parse(c.text) : c.text) as T;
+
+async function fetchRaw(method: string, url: string, body?: unknown): Promise<Cached> {
   const res = await fetch(`/api/v1${url}`, {
     method,
     credentials: 'same-origin',
@@ -97,7 +105,27 @@ export async function call<T>(method: string, url: string, body?: unknown): Prom
     const data = (await res.json().catch(() => ({}))) as { error?: string };
     throw new ApiError(data.error ?? `Request failed (${res.status})`, res.status);
   }
-  return (res.headers.get('content-type')?.includes('json') ? res.json() : res.text()) as Promise<T>;
+  return { at: Date.now(), text: await res.text(), json: res.headers.get('content-type')?.includes('json') ?? false };
+}
+
+export async function call<T>(method: string, url: string, body?: unknown): Promise<T> {
+  if (method !== 'GET') {
+    const out = await fetchRaw(method, url, body);
+    cache.clear();
+    inflight.clear();
+    return parse<T>(out);
+  }
+  const hit = cache.get(url);
+  if (hit && Date.now() - hit.at < ttlFor(url)) return parse<T>(hit);
+  let pending = inflight.get(url);
+  if (!pending) {
+    pending = fetchRaw('GET', url).then((c) => {
+      if (c.json && ttlFor(url) > 0) cache.set(url, c);
+      return c;
+    }).finally(() => inflight.delete(url));
+    inflight.set(url, pending);
+  }
+  return parse<T>(await pending);
 }
 
 export const api = {
