@@ -1,0 +1,46 @@
+/* Phone defaults: these wrappers are invisible so the mobile layout is unchanged. */
+.home-grid, .home-col, .hist-filters, .add-grid, .add-main { display: contents; }
+.desk-only, .txn-head { display: none; }
+.col-cat, .col-wallet, .col-src { display: none; }
+.review-card { order: 1; }
+.h-today { order: 2; }
+.h-log { order: 3; }
+.h-month { order: 4; }
+.ask-link { order: 5; }
+.h-list { order: 6; display: flex; flex-direction: column; gap: 12px; }
+
+@media (min-width: 1024px) {
+  .desk-only { display: flex; flex-direction: column; }
+  .review-card, .h-today, .h-log, .h-month, .ask-link, .h-list { order: 0; }
+
+  /* Home: spend and today's list on the left, month, shortcuts and wallets on the right */
+  .home-grid { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 20px; align-items: start; }
+  .home-col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+  .h-today .big { font-size: 40px; }
+
+  /* Entries as a table: icon, description, category, wallet, source, amount */
+  .txn-head, .txn-table .item { display: grid; grid-template-columns: 40px minmax(0, 2fr) minmax(0, 1.2fr) minmax(0, 1.2fr) 90px 130px; align-items: center; column-gap: 14px; }
+  .txn-head { padding: 0 16px; font-size: 12px; font-weight: 700; color: var(--muted); margin-top: 4px; }
+  .txn-head span:last-child, .txn-table .amount { text-align: right; }
+  .txn-table .item .grow { grid-column: 2; }
+  .col-cat, .col-wallet, .col-src { display: block; font-size: 14px; }
+  .home-main .txn-table .item { grid-template-columns: 40px minmax(0, 2fr) minmax(0, 1.2fr) 130px; }
+  .home-main .txn-table .col-wallet, .home-main .txn-table .col-src { display: none; }
+  .txn-table .item:hover { background: var(--bg); }
+
+  /* History: filters in one row */
+  .hist-filters { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .hist-filters > .input { flex: 1 1 240px; width: auto; }
+  .hist-filters > .row { flex: 2 1 360px; }
+  .hist-filters > .seg { flex: 0 0 auto; min-width: 280px; }
+
+  /* Add: input and parsed entries beside the tips */
+  .add-grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 20px; align-items: start; }
+  .add-main { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .add-side { gap: 12px; padding: 18px; }
+  .add-side .tip { display: flex; flex-direction: column; gap: 2px; padding-top: 10px; border-top: 1px solid var(--line); }
+  .add-side .tip:first-of-type { border-top: 0; padding-top: 0; }
+
+  /* Forms stay readable, not stretched across the screen */
+  .screen > form.card { max-width: 640px; }
+}

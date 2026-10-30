@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { api, ApiError, type Proposal } from '../api';
 import { TxnForm, toMinor } from '../components';
 import { useStore } from '../store';
+import './desk-main.css';
 
 const today = () => new Date(Date.now() + 7 * 3600_000).toISOString().slice(0, 10);
 
@@ -58,7 +59,8 @@ export function AddPage() {
       {error && <div className="err" role="alert">{error}</div>}
 
       {mode === 'type' ? (
-        <>
+        <div className="add-grid">
+          <div className="add-main">
           <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <label htmlFor="free" className="muted small" style={{ fontWeight: 700 }}>Type one or more payments</label>
             <textarea id="free" className="input" value={text} onChange={(e) => { setText(e.target.value); setProposals([]); }} placeholder="kopi 28k gopay dan parkir 3k" />
@@ -98,7 +100,14 @@ export function AddPage() {
               Save {proposals.length} {proposals.length === 1 ? 'entry' : 'entries'}
             </button>
           )}
-        </>
+          </div>
+          <aside className="card add-side desk-only" aria-label="Typing shortcuts">
+            <div className="muted small" style={{ fontWeight: 700 }}>Typing shortcuts</div>
+            {[['nasbung 16k @2', 'two separate entries'], ['nasbung 16k x2', 'one entry, 32.000'], ['gaji 8jt bca', 'income into BCA'], ['kopi 28k dan parkir 3k', 'several items at once'], ['transfer bca ke gopay 500k', 'between your wallets']].map(([a, b]) => (
+              <div key={a} className="tip"><b>{a}</b><span className="muted small">{b}</span></div>
+            ))}
+          </aside>
+        </div>
       ) : (
         <TxnForm
           busy={busy}

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { api, type Txn } from '../api';
 import { TxnRow, TxnSheet } from '../components';
 import { useStore } from '../store';
+import './desk-main.css';
 
 const PAGE = 100;
 
@@ -55,6 +56,7 @@ export function HistoryPage() {
   return (
     <>
       <h1>History</h1>
+      <div className="hist-filters">
       <input className="input" type="search" placeholder="Search description" aria-label="Search" value={q} onChange={(e) => setQ(e.target.value)} />
       <div className="row">
         <select className="input" aria-label="Wallet" value={walletId} onChange={(e) => setWalletId(e.target.value)}>
@@ -71,12 +73,16 @@ export function HistoryPage() {
           <button key={v} aria-pressed={type === v} onClick={() => setType(v!)}>{label}</button>
         ))}
       </div>
+      </div>
       {error && <div className="notice" role="alert">{error}</div>}
       {days.length === 0 && !error && <div className="card muted" style={{ textAlign: 'center' }}>No entries match.</div>}
+      {days.length > 0 && (
+        <div className="txn-head" aria-hidden="true"><span /><span>Description</span><span>Category</span><span>Wallet</span><span>Source</span><span>Amount</span></div>
+      )}
       {days.map((d) => (
         <section key={d.date} aria-label={dayLabel(d.date)}>
           <div className="day"><span>{dayLabel(d.date)}</span><span className="num">{d.spent ? money(d.spent) : ''}</span></div>
-          <div className="card flush" style={{ marginTop: 6 }}>{d.items.map((t) => <TxnRow key={t.id} t={t} onOpen={setOpen} />)}</div>
+          <div className="card flush txn-table" style={{ marginTop: 6 }}>{d.items.map((t) => <TxnRow key={t.id} t={t} onOpen={setOpen} />)}</div>
         </section>
       ))}
       {more && <button className="btn ghost" onClick={() => void load(rows.length, false)}>Load more</button>}

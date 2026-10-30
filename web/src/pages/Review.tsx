@@ -5,6 +5,7 @@ import { capture, type ReviewItem } from '../api-capture';
 import { Sheet, toInputAmount, toMinor, TxnForm } from '../components';
 import { useStore } from '../store';
 import './capture.css';
+import './desk-money.css';
 
 const TAGS: Record<ReviewItem['kind'], { label: string; cls: string }> = {
   paired_transfer: { label: 'Paired transfer', cls: 'good' },
@@ -26,6 +27,7 @@ export function ReviewPage() {
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState<ReviewItem | null>(null);
   const [changing, setChanging] = useState<number | null>(null);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -54,6 +56,7 @@ export function ReviewPage() {
   }
 
   const left = items?.length ?? 0;
+  const selected = items?.find((i) => i.id === selectedId) ?? items?.[0];
   const closeDay = () => {
     if (left === 0) { nav('/'); return; }
     if (!confirm('Confirm everything that is ready as suggested? Duplicates and unreadable items stay for you.')) return;
@@ -63,27 +66,8 @@ export function ReviewPage() {
     });
   };
 
-  return (
-    <>
-      <div className="cap-head">
-        <Link to="/" className="cap-back" aria-label="Back">←</Link>
-        <div>
-          <h1 className="cap-title">Close the day</h1>
-          <div className="muted small">{new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })} · {left} to review</div>
-        </div>
-      </div>
-      {error && <div className="notice" role="alert">{error}</div>}
-      {note && <div className="notice" role="status">{note}</div>}
-
-      {items && items.length === 0 && (
-        <div className="cap-card cap-empty">
-          <b style={{ color: 'var(--ink)' }}>All caught up</b>
-          <div>New bank and e-wallet notifications appear here for you to confirm.</div>
-          <Link to="/settings/sources">Notification sources</Link>
-        </div>
-      )}
-
-      {items?.map((it) => (
+  const titleOf = (it: ReviewItem) => (it.type === 'transfer' ? `${wallet(it.walletId)?.name ?? '?'} → ${wallet(it.toWalletId)?.name ?? '?'}` : it.description);
+  const renderCard = (it: ReviewItem) => (
         <Card
           key={it.id}
           it={it}
@@ -102,10 +86,57 @@ export function ReviewPage() {
           categoryName={category(it.categoryId)?.name}
           cats={categories.filter((c) => !c.archived && c.kind === it.type)}
         />
-      ))}
+      );
+
+  return (
+    <>
+      <div className="cap-head">
+        <Link to="/" className="cap-back" aria-label="Back">←</Link>
+        <div>
+          <h1 className="cap-title">Close the day</h1>
+          <div className="muted small">{new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })} · {left} to review</div>
+        </div>
+        <div className="d-only d-head-actions">
+          <Link to="/settings/sources" className="btn ghost">Notification sources</Link>
+          {items && <button className="btn" disabled={busy} onClick={closeDay}>{left === 0 ? 'Done' : `Close the day · ${left} left`}</button>}
+        </div>
+      </div>
+      {error && <div className="notice" role="alert">{error}</div>}
+      {note && <div className="notice" role="status">{note}</div>}
+
+      {items && items.length === 0 && (
+        <div className="cap-card cap-empty">
+          <b style={{ color: 'var(--ink)' }}>All caught up</b>
+          <div>New bank and e-wallet notifications appear here for you to confirm.</div>
+          <Link to="/settings/sources">Notification sources</Link>
+        </div>
+      )}
+
+      <div className="m-wrap">{items?.map(renderCard)}</div>
+      {items && items.length > 0 && (
+        <div className="d-split d-only">
+          <div className="d-queue">
+            <div className="muted small" style={{ fontWeight: 700 }}>Waiting for you</div>
+            {items.map((it) => (
+              <button key={it.id} type="button" className={`d-q ${selected?.id === it.id ? 'sel' : ''}`} aria-pressed={selected?.id === it.id} onClick={() => setSelectedId(it.id)}>
+                <span className="row between">
+                  <span className={`cap-tag ${TAGS[it.kind].cls}`}>{TAGS[it.kind].label}</span>
+                  <span className="muted small">{hhmm(it.receivedAt)}</span>
+                </span>
+                <span className="row between">
+                  <b className="ellipsis">{titleOf(it)}</b>
+                  <span className="amount">{it.amount ? `${it.type === 'income' ? '+' : it.type === 'transfer' ? '' : '−'}${money(it.amount)}` : '—'}</span>
+                </span>
+              </button>
+            ))}
+            <div className="cap-note">“Close the day” confirms every item that is ready. Duplicates and unreadable items stay here until you decide.</div>
+          </div>
+          <div className="d-detail">{selected && renderCard(selected)}</div>
+        </div>
+      )}
 
       {items && (
-        <button className="btn block" disabled={busy} onClick={closeDay}>
+        <button className="btn block m-only" disabled={busy} onClick={closeDay}>
           {left === 0 ? 'Done' : `Close the day · ${left} left`}
         </button>
       )}

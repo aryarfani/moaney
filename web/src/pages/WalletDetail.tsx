@@ -6,6 +6,7 @@ import { AmountInput, toMinor, TxnRow, TxnSheet } from '../components';
 import { useStore } from '../store';
 import { BackHeader } from './Settings';
 import './plan.css';
+import './desk-money.css';
 
 const KIND_LABEL: Record<string, string> = {
   bank: 'Bank account', ewallet: 'E-wallet', cash: 'Cash', credit_card: 'Credit card', receivable: 'Owed to me', history: 'History only',
@@ -72,6 +73,8 @@ export function WalletDetailPage() {
       <BackHeader to="/wallets" title={wallet.name} sub={KIND_LABEL[wallet.kind] ?? wallet.kind} />
       {error && <div className="notice" role="alert">{error}</div>}
 
+      <div className="d-wd">
+      <div className="d-wd-left">
       <section className="card" aria-label="Balance">
         <div className="muted small">Balance in Moaney</div>
         <div className="big">{money(wallet.balance)}</div>
@@ -100,6 +103,8 @@ export function WalletDetailPage() {
         </section>
       )}
 
+      </div>
+      <div className="d-wd-right">
       <h2>Recent activity</h2>
       {recent.length === 0 ? (
         <div className="card muted" style={{ textAlign: 'center' }}>Nothing recorded in this wallet yet.</div>
@@ -107,6 +112,8 @@ export function WalletDetailPage() {
         <div className="card flush">{recent.map((t) => <TxnRow key={t.id} t={t} onOpen={setOpen} />)}</div>
       )}
 
+      </div>
+      <div className="d-wd-actions">
       {renaming ? (
         <form className="card stack" onSubmit={(e) => { e.preventDefault(); void run(async () => { await planApi.patchWallet(wid, { name }); setRenaming(false); }, 'Could not rename.'); }}>
           <div className="field"><label htmlFor="rn">Wallet name</label><input id="rn" className="input" value={name} maxLength={60} onChange={(e) => setName(e.target.value)} autoFocus /></div>
@@ -120,6 +127,8 @@ export function WalletDetailPage() {
           }}>Archive wallet</button>
         </div>
       )}
+      </div>
+      </div>
       {open && <TxnSheet txn={open} onClose={() => setOpen(null)} onChanged={() => void load()} />}
     </>
   );

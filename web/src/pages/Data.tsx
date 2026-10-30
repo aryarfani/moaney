@@ -5,6 +5,7 @@ import { planApi, type DataStatus } from '../api-plan';
 import { useStore } from '../store';
 import { BackHeader } from './Settings';
 import './plan.css';
+import './desk-settings.css';
 
 const RETENTION = [7, 30, 90] as const;
 
@@ -42,6 +43,8 @@ export function DataPage() {
     <>
       <BackHeader to="/settings" title="Data and security" />
       {error && <div className="notice" role="alert">{error}</div>}
+      <div className="data-cols">
+      <div className="data-group">
       <h2>Your data</h2>
       <div className="card flush">
         <div className="item plain">
@@ -58,9 +61,13 @@ export function DataPage() {
         </div>
       </div>
 
+      </div>
+      <div className="data-group">
       <h2>Account</h2>
       <div className="card flush">
         <button className="item" onClick={() => void signOut()}><span className="grow"><b>Sign out</b></span></button>
+      </div>
+      </div>
       </div>
       <div className="muted small" style={{ padding: '0 4px', lineHeight: 1.45 }}>Connected apps, language and changing the password are not available yet.</div>
     </>

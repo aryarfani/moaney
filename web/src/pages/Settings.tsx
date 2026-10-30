@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { planApi, type SettingsSummary } from '../api-plan';
 import { useStore } from '../store';
 import './plan.css';
+import './desk-settings.css';
 
 export function BackHeader({ to, title, sub }: { to: string; title: string; sub?: string }) {
   return (
@@ -33,10 +34,10 @@ const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? o
 
 function Group({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <>
+    <div className="set-group">
       <h2>{title}</h2>
       <div className="card flush">{children}</div>
-    </>
+    </div>
   );
 }
 
@@ -54,6 +55,7 @@ export function SettingsPage() {
   return (
     <>
       <BackHeader to="/wallets" title="Settings" />
+      <div className="set-groups">
       <Group title="Capture">
         <Row to="/settings/sources" emoji="📲" title="Notification sources" sub="Phones and apps that send notifications" />
         <Row to="/settings/rules" emoji="🧠" title="Rules" sub={s?.suggestedRules ? `${plural(s.suggestedRules, 'suggestion')} waiting` : 'Learned from your corrections'} badge={s?.suggestedRules} />
@@ -70,6 +72,7 @@ export function SettingsPage() {
           <span className="grow"><b>Sign out</b></span>
         </button>
       </Group>
+      </div>
     </>
   );
 }

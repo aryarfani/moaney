@@ -5,6 +5,7 @@ import { AmountInput, Sheet, toInputAmount, toMinor } from '../components';
 import { useStore } from '../store';
 import { BackHeader } from './Settings';
 import './plan.css';
+import './desk-settings.css';
 
 const jakartaToday = () => new Date(Date.now() + 7 * 3600_000).toISOString().slice(0, 10);
 const daysUntil = (d: string) => Math.round((Date.parse(`${d}T00:00:00Z`) - Date.parse(`${jakartaToday()}T00:00:00Z`)) / 86400_000);
@@ -119,12 +120,12 @@ export function BillsPage() {
           {bills.map((b) => {
             const due = dueLabel(b.nextDue);
             return (
-              <div key={b.id} className="item plain" style={{ minHeight: 72 }}>
+              <div key={b.id} className="item plain bill-row" style={{ minHeight: 72 }}>
                 <button className="grow" style={{ background: 'none', border: 0, textAlign: 'left', padding: 0, cursor: 'pointer' }} onClick={() => setEditing(edit(b))} aria-label={`Edit ${b.name}`}>
                   <b style={{ fontSize: 15 }}>{b.name}</b>
                   <div className="sub">Monthly · {wallet(b.walletId)?.name ?? ''}</div>
                 </button>
-                <div style={{ textAlign: 'right' }}>
+                <div className="bill-amt" style={{ textAlign: 'right' }}>
                   <div className="num" style={{ fontWeight: 800, fontSize: 14 }}>{money(b.amount)}</div>
                   <span className={`tag ${due.soon ? 'warn' : ''}`}>{due.text}</span>
                 </div>

@@ -39,3 +39,7 @@
 .ask-a { background: var(--card); border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
 .ask-a .kv { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; padding: 6px 0; border-top: 1px solid var(--line); }
 .ask-form { display: flex; gap: 8px; align-items: center; }
+
+@media (min-width: 1024px) {
+  .period-pill span { min-width: 110px; }
+}

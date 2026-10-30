@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { api, ApiError } from '../api';
 import { useStore } from '../store';
 import { AmountInput } from '../components';
+import './desk-money.css';
 
 const KINDS = [['bank', 'Bank'], ['ewallet', 'E-wallet'], ['cash', 'Cash'], ['credit_card', 'Credit card'], ['receivable', 'Owed to me']] as const;
 
@@ -36,16 +37,24 @@ export function WalletsPage() {
   return (
     <>
       <div className="row between">
-        <h1>Wallets</h1>
+        <h1 className="d-grow">Wallets</h1>
         <Link to="/settings" className="btn ghost" style={{ minHeight: 44 }} aria-label="Settings">⚙️ Settings</Link>
+        <button className="btn d-only" onClick={() => setAdding(true)}>Add a wallet</button>
       </div>
-      <section className="card" aria-label="Total balance">
-        <div className="muted small">Total balance</div>
-        <div className="big">{money(total)}</div>
-        <div className="muted small">Counts real wallets only. “Before Moaney” is history and is left out.</div>
-      </section>
+      <div className="d-wtop">
+        <section className="card" aria-label="Total balance">
+          <div className="muted small">Total balance</div>
+          <div className="big">{money(total)}</div>
+          <div className="muted small">Counts real wallets only. “Before Moaney” is history and is left out.</div>
+        </section>
+        <div className="d-links d-only">
+          <Link to="/settings/goals" className="card d-link"><b>Goals</b><span className="muted small">Set money aside without moving it</span></Link>
+          <Link to="/investments" className="card d-link"><b>Investments</b><span className="muted small">Holdings, prices and gains</span></Link>
+        </div>
+      </div>
 
-      <div className="card flush">
+      <h2 className="d-only">Your wallets</h2>
+      <div className="card flush d-wallets">
         {counted.map((w) => (
           <Link key={w.id} to={`/wallets/${w.id}`} className="item" style={{ textDecoration: 'none', color: 'inherit' }}>
             <span className="emoji" aria-hidden="true">{w.emoji}</span>
@@ -80,10 +89,10 @@ export function WalletsPage() {
           <div className="row"><button className="btn grow" disabled={!name.trim()}>Add wallet</button><button type="button" className="btn ghost" onClick={() => setAdding(false)}>Cancel</button></div>
         </form>
       ) : (
-        <button className="btn ghost" onClick={() => setAdding(true)}>Add a wallet</button>
+        <button className="btn ghost m-only" onClick={() => setAdding(true)}>Add a wallet</button>
       )}
 
-      <Link to="/investments" className="item card" style={{ textDecoration: 'none', color: 'inherit', padding: '8px 16px' }}>
+      <Link to="/investments" className="item card m-only" style={{ textDecoration: 'none', color: 'inherit', padding: '8px 16px' }}>
         <span className="emoji" aria-hidden="true">📈</span>
         <span className="grow"><b>Investments</b><div className="muted small">Holdings, prices and gains</div></span>
       </Link>

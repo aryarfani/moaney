@@ -1,0 +1,48 @@
+/* Desktop layouts for the settings screens. Phones keep the single-column look: the wrappers below collapse with display: contents. */
+.set-groups, .set-group, .goal-grid, .rules-grid, .data-cols, .data-group { display: contents; }
+.cat-head { display: none; }
+
+@media (min-width: 1024px) {
+  .back-head .back-btn, .cap-back { display: none; }
+  .back-head { padding: 0; }
+  .back-head h1, .cap-title { font-size: 28px; }
+  .cap-head { padding: 0; }
+
+  /* Settings overview: Capture, Plan and Account as three columns of cards */
+  .set-groups { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: start; }
+  .set-group { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .set-group .item { min-height: 72px; }
+  .set-group .sub { overflow-wrap: anywhere; }
+
+  /* Categories: a table whose rows are the buttons */
+  .cat-head, .cat-row .grow { display: grid; grid-template-columns: minmax(0, 1fr) 240px 140px; column-gap: 20px; align-items: center; }
+  .cat-head { padding: 12px 0 6px 52px; font-size: 12px; font-weight: 700; color: var(--muted); border-bottom: 1px solid var(--line); }
+  .cat-head span:last-child { text-align: right; }
+  .cat-row { min-height: 64px; }
+  .cat-row .grow > .row { display: contents; }
+  .cat-row .grow b { grid-column: 1; grid-row: 1; }
+  .cat-row .grow .sub { grid-column: 1; grid-row: 2; margin: 0 !important; }
+  .cat-row .grow .bar { grid-column: 2; grid-row: 1 / 3; margin: 0 !important; }
+  .cat-row .grow .amount { grid-column: 3; grid-row: 1 / 3; text-align: right; }
+  .cat-row:hover { background: var(--bg); }
+
+  /* Goals: two-column card grid */
+  .goal-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+
+  /* Bills: table-like rows with fixed amount and due columns */
+  .bill-row { gap: 20px; }
+  .bill-row .bill-amt { width: 150px; flex: none; }
+  .bill-row .bill-amt .tag { margin-top: 2px; }
+  .bill-row > .btn { min-width: 96px; }
+
+  /* Data and security: two columns */
+  .data-cols { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 16px; align-items: start; }
+  .data-group { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+
+  /* Rules: suggestions side by side */
+  .rules-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+
+  /* Sources: wallet picker sits inline in each app row */
+  .src-row { flex-wrap: nowrap !important; }
+  .src-row .field { width: 240px !important; flex: none; }
+}

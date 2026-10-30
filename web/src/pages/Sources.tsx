@@ -4,6 +4,7 @@ import { ApiError } from '../api';
 import { capture, type SourcesView } from '../api-capture';
 import { useStore } from '../store';
 import './capture.css';
+import './desk-settings.css';
 
 const INGEST_URL = 'https://moaney.arfani.my.id/api/v1/capture/notifications';
 const INITIALS: Record<string, string> = { gopay: 'GP', mybca: 'BCA', jago: 'Jg' };
@@ -122,7 +123,7 @@ export function SourcesPage() {
       <h2>Apps allowed to send</h2>
       <div className="cap-list">
         {view?.apps.map((a) => (
-          <div key={a.id} className="cap-row" style={{ flexWrap: 'wrap' }}>
+          <div key={a.id} className="cap-row src-row" style={{ flexWrap: 'wrap' }}>
             <span className="cap-tile" aria-hidden="true">{INITIALS[a.app] ?? a.label.slice(0, 2)}</span>
             <span className="grow">
               <b style={{ display: 'block' }}>{a.label}</b>

@@ -5,6 +5,7 @@ import { invApi, type Holding, type HoldingDetail, type HoldingKind, type Portfo
 import { AmountInput, Sheet, toInputAmount, toMinor } from '../components';
 import { useStore } from '../store';
 import './investments.css';
+import './desk-invest.css';
 
 const KIND_LABEL: Record<HoldingKind, string> = { sbn: 'SBN', stock: 'Stocks', fund: 'Funds & ETFs', gold: 'Gold', cash: 'Cash', other: 'Other' };
 const KINDS = Object.keys(KIND_LABEL) as HoldingKind[];
@@ -50,15 +51,19 @@ export function InvestmentsPage() {
   const valueParts = (n: number) => money(n).replace(/^Rp\s?/, '');
 
   return (
-    <div className="inv" style={{ display: 'contents' }}>
-      <div className="row">
-        <Link to="/wallets" className="btn ghost" aria-label="Back to wallets" style={{ width: 44, minHeight: 44, padding: 0 }}>‹</Link>
-        <h1 className="grow">Investments</h1>
+    <div className="inv">
+      <div className="row inv-head">
+        <Link to="/wallets" className="btn ghost inv-back" aria-label="Back to wallets" style={{ width: 44, minHeight: 44, padding: 0 }}>‹</Link>
+        <div className="grow">
+          <div className="muted small inv-eyebrow">Tracked separately from your wallets</div>
+          <h1>Investments</h1>
+        </div>
       </div>
       {error && <div className="notice" role="alert">{error}</div>}
 
       {p && (
         <>
+          <div className="inv-top">
           <section className="card hero" aria-label="Portfolio value">
             <div className="label">Portfolio value</div>
             <div className="value"><span>Rp</span>{valueParts(p.value)}</div>
@@ -82,26 +87,38 @@ export function InvestmentsPage() {
                 {p.allocation.map((a) => <div key={a.kind} className={`k-${a.kind}`} style={{ width: `${a.percent}%` }} />)}
               </div>
               <div className="legend">
-                {p.allocation.map((a) => <span key={a.kind}><span className={`dot k-${a.kind}`} />{KIND_LABEL[a.kind]} {a.percent}%</span>)}
+                {p.allocation.map((a) => <span key={a.kind}><span className={`dot k-${a.kind}`} /><span className="lg-l">{KIND_LABEL[a.kind]}</span>{' '}<span className="lg-p">{a.percent}%</span></span>)}
               </div>
             </section>
           )}
+          </div>
 
           <h2>Holdings</h2>
           {p.holdings.length === 0 ? (
             <div className="card muted" style={{ textAlign: 'center' }}>No holdings yet. Add one to start tracking it.</div>
           ) : (
-            <div className="card flush">
+            <div className="card flush inv-table">
+              <div className="inv-thead" aria-hidden="true">
+                <span>Instrument</span><span className="r">Units</span><span className="r">Avg cost</span><span className="r">Price</span><span className="r">Value</span><span className="r">Gain</span>
+              </div>
               {p.holdings.map((h) => (
-                <button key={h.id} className="item" onClick={() => setSheet({ t: 'holding', id: h.id })}>
-                  <span className="tile" aria-hidden="true">{h.symbol.slice(0, 4).toUpperCase()}</span>
-                  <span className="grow">
-                    <b className="ellipsis" style={{ display: 'block', fontSize: 15 }}>{h.symbol}</b>
-                    <span className="muted small ellipsis" style={{ display: 'block' }}>
-                      {h.unitsE4 > 0 ? `${formatUnits(h.unitsE4)} ${h.unitLabel} · avg ${money(avgCost(h))}` : `Sold out · ${KIND_LABEL[h.kind]}`}
+                <button key={h.id} className="item inv-row" onClick={() => setSheet({ t: 'holding', id: h.id })}>
+                  <span className="inv-id">
+                    <span className="tile" aria-hidden="true">{h.symbol.slice(0, 4).toUpperCase()}</span>
+                    <span className="grow">
+                      <b className="ellipsis" style={{ display: 'block', fontSize: 15 }}>{h.symbol}</b>
+                      <span className="muted small ellipsis inv-sub-m" style={{ display: 'block' }}>
+                        {h.unitsE4 > 0 ? `${formatUnits(h.unitsE4)} ${h.unitLabel} · avg ${money(avgCost(h))}` : `Sold out · ${KIND_LABEL[h.kind]}`}
+                      </span>
+                      <span className="muted small ellipsis inv-sub-d">{h.unitsE4 > 0 ? (h.name || KIND_LABEL[h.kind]) : `Sold out · ${KIND_LABEL[h.kind]}`}</span>
                     </span>
                   </span>
-                  <span style={{ textAlign: 'right' }}>
+                  <span className="d-cell r num">{h.unitsE4 > 0 ? `${formatUnits(h.unitsE4)} ${h.unitLabel}` : '—'}</span>
+                  <span className="d-cell r num">{h.unitsE4 > 0 ? money(avgCost(h)) : '—'}</span>
+                  <span className="d-cell r num">{h.price !== null ? money(h.price) : h.unitsE4 > 0 ? <span className="add-price">Add price</span> : '—'}</span>
+                  <span className="d-cell r num">{h.price === null && h.unitsE4 > 0 ? <span className="muted">cost {money(h.cost)}</span> : <b>{money(h.value)}</b>}</span>
+                  <span className="d-cell r num">{h.gain !== null ? <span className={h.gain >= 0 ? 'gain-up' : 'gain-down'}>{h.gain >= 0 ? '+' : '−'}{money(Math.abs(h.gain))}</span> : '—'}</span>
+                  <span className="inv-right" style={{ textAlign: 'right' }}>
                     {h.price === null && h.unitsE4 > 0 ? (
                       <><div className="add-price">Add price</div><div className="muted small num">cost {money(h.cost)}</div></>
                     ) : (
@@ -114,11 +131,11 @@ export function InvestmentsPage() {
             </div>
           )}
 
-          <div className="row">
-            <button className="btn ghost grow" onClick={() => setSheet({ t: 'add' })}>Add holding</button>
-            <button className="btn grow" disabled={p.holdings.length === 0} onClick={() => setSheet({ t: 'prices' })}>Update prices</button>
+          <div className="row inv-actions">
+            <button className="btn ghost grow inv-add" onClick={() => setSheet({ t: 'add' })}>Add holding</button>
+            <button className="btn grow inv-prices" disabled={p.holdings.length === 0} onClick={() => setSheet({ t: 'prices' })}>Update prices</button>
           </div>
-          <div className="muted small" style={{ padding: '0 4px' }}>Tracked separately from your wallets. Buying or selling here does not change any wallet balance.</div>
+          <div className="muted small inv-note" style={{ padding: '0 4px' }}>Tracked separately from your wallets. Buying or selling here does not change any wallet balance.</div>
         </>
       )}
 

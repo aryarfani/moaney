@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { api, type Chip, type Summary, type Txn } from '../api';
 import { capture } from '../api-capture';
 import { TxnRow, TxnSheet } from '../components';
+import './desk-main.css';
 import { useStore } from '../store';
 import './capture.css';
 
@@ -63,6 +64,8 @@ export function HomePage() {
       {error && <div className="notice" role="alert">{error}</div>}
       {logged && <div className="notice" role="status">{logged}</div>}
 
+      <div className="home-grid">
+      <div className="home-col home-main">
       {review > 0 && (
         <Link to="/review" className="review-card">
           <span className="grow"><b>{review} to review</b><div className="muted small">New notifications are waiting for your OK</div></span>
@@ -70,14 +73,27 @@ export function HomePage() {
         </Link>
       )}
 
-      <section className="card" aria-label="Today">
+      <section className="card h-today" aria-label="Today">
         <div className="muted small">Spent today</div>
         <div className="big">{money(summary?.today.total ?? 0)}</div>
         <div className="muted small">{summary?.today.count ?? 0} {summary?.today.count === 1 ? "payment" : "payments"}</div>
       </section>
 
+      <div className="h-list">
+      <h2>Today</h2>
+      {todays.length === 0 ? (
+        <div className="card muted" style={{ textAlign: 'center' }}>
+          Nothing recorded today.
+          {noRealWallet && <div style={{ marginTop: 10 }}><Link to="/import">Bring in your history</Link></div>}
+        </div>
+      ) : (
+        <div className="card flush txn-table">{todays.map((t) => <TxnRow key={t.id} t={t} onOpen={setOpen} />)}</div>
+      )}
+      </div>
+      </div>
+      <div className="home-col home-side">
       {chips.length > 0 && (
-        <section aria-label="Log again">
+        <section aria-label="Log again" className="h-log">
           <h2>Log again</h2>
           <div className="chips grid" style={{ marginTop: 8 }}>
             {chips.map((c) => (
@@ -90,7 +106,7 @@ export function HomePage() {
       )}
 
       {summary && (
-        <section className="card" aria-label="This month">
+        <section className="card h-month" aria-label="This month">
           <div className="muted small">This month so far</div>
           <div className="row between" style={{ marginTop: 4 }}>
             <div><div className="muted small">Money out</div><b className="num">{money(summary.month.total)}</b></div>
@@ -107,15 +123,14 @@ export function HomePage() {
 
       <Link to="/ask" className="ask-link"><span>Ask Moaney</span><span className="muted small">How much did I spend on…</span></Link>
 
-      <h2>Today</h2>
-      {todays.length === 0 ? (
-        <div className="card muted" style={{ textAlign: 'center' }}>
-          Nothing recorded today.
-          {noRealWallet && <div style={{ marginTop: 10 }}><Link to="/import">Bring in your history</Link></div>}
-        </div>
-      ) : (
-        <div className="card flush">{todays.map((t) => <TxnRow key={t.id} t={t} onOpen={setOpen} />)}</div>
-      )}
+      <div className="card h-wallets desk-only" aria-label="Wallets">
+        <div className="muted small" style={{ fontWeight: 700 }}>Wallets</div>
+        {wallets.filter((w) => w.countsTowardTotal && !w.archived).map((w) => (
+          <div key={w.id} className="row between" style={{ marginTop: 10 }}><b>{w.name}</b><span className="num">{money(w.balance)}</span></div>
+        ))}
+      </div>
+      </div>
+      </div>
       {open && <TxnSheet txn={open} onClose={() => setOpen(null)} onChanged={() => void load()} />}
     </>
   );

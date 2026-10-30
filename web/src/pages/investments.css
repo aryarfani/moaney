@@ -1,3 +1,7 @@
+.inv { display: contents; }
+.inv-top { display: contents; }
+.inv-eyebrow, .inv-sub-d, .inv-thead, .d-cell { display: none; }
+.inv-id { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
 .inv {
   --inv-hero: #14201b; --inv-hero-ink: #fff;
   --inv-sbn: #0e7a55; --inv-stock: #4dae86; --inv-fund: #a9d9c2; --inv-gold: #c98a1b; --inv-cash: #9aa7a0; --inv-other: #6f8f86;

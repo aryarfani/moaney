@@ -4,6 +4,7 @@ import { ApiError } from '../api';
 import { capture, type Rule, type RulesView } from '../api-capture';
 import { useStore } from '../store';
 import './capture.css';
+import './desk-settings.css';
 
 export function RulesPage() {
   const { category, reload } = useStore();
@@ -42,6 +43,7 @@ export function RulesPage() {
 
       <h2>Suggested from your corrections</h2>
       {view && view.suggested.length === 0 && <div className="cap-card cap-empty">No suggestions yet. Moaney suggests a rule after you file the same merchant under the same category three times.</div>}
+      <div className="rules-grid">
       {view?.suggested.map((r) => (
         <div key={r.id} className="cap-card">
           <div style={{ fontSize: 14, lineHeight: 1.4 }}>When a payment is from <b>{pattern(r)}</b>, file it under <span className="cap-tag">{catName(r)}</span></div>
@@ -52,6 +54,7 @@ export function RulesPage() {
           </div>
         </div>
       ))}
+      </div>
 
       <h2>Active rules</h2>
       {view && view.active.length === 0 && <div className="cap-card cap-empty">No active rules.</div>}

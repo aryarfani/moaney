@@ -3,6 +3,8 @@ import { api, ApiError, type AuditRow, type Txn } from './api';
 import { decimalToMinor, formatMoney } from '../../shared/money';
 import { useStore } from './store';
 
+const SOURCE_LABEL: Record<string, string> = { manual: 'Manual', typed: 'Typed', notification: 'Auto', 'import:csv': 'Import' };
+
 export function TxnRow({ t, onOpen }: { t: Txn; onOpen: (t: Txn) => void }) {
   const { wallet, category, money } = useStore();
   const cat = category(t.categoryId);
@@ -17,6 +19,9 @@ export function TxnRow({ t, onOpen }: { t: Txn; onOpen: (t: Txn) => void }) {
         <span className="ellipsis" style={{ display: 'block', fontWeight: 700, fontSize: 15 }}>{title}</span>
         <span className="muted small ellipsis" style={{ display: 'block' }}>{sub}{t.source.startsWith('import') ? ' · import' : ''}</span>
       </span>
+      <span className="col-cat ellipsis">{isTransfer ? 'Transfer' : cat?.name ?? ''}</span>
+      <span className="col-wallet ellipsis">{isTransfer ? `${wallet(t.walletId)?.name} → ${wallet(t.toWalletId)?.name}` : wallet(t.walletId)?.name ?? ''}</span>
+      <span className="col-src muted">{SOURCE_LABEL[t.source] ?? t.source}</span>
       <span className={`amount ${t.type === 'income' ? 'in' : ''}`}>{t.type === 'income' ? '+' : ''}{money(t.amount)}</span>
     </button>
   );

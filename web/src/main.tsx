@@ -1,6 +1,7 @@
 import { StrictMode, useCallback, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter, NavLink, Navigate, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, NavLink, Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
+import { capture } from './api-capture';
 import { api, setCsrf } from './api';
 import { StoreProvider } from './store';
 import { AddPage } from './pages/Add';
@@ -29,7 +30,29 @@ const Icon = ({ d }: { d: string }) => (
   </svg>
 );
 
+const SETTINGS_LINKS = [
+  ['/settings', 'Overview'], ['/settings/sources', 'Notification sources'], ['/settings/rules', 'Rules'], ['/settings/categories', 'Categories and budgets'],
+  ['/settings/goals', 'Goals'], ['/settings/bills', 'Recurring bills'], ['/settings/data', 'Data and security'],
+] as const;
+
+/** On desktop the settings screens share a second column listing the sections; on phones it is hidden. */
+function SettingsLayout() {
+  return (
+    <div className="settings-layout">
+      <nav className="settings-nav" aria-label="Settings sections">
+        {SETTINGS_LINKS.map(([to, label]) => <NavLink key={to} to={to} end>{label}</NavLink>)}
+      </nav>
+      <div className="settings-body"><Outlet /></div>
+    </div>
+  );
+}
+
 function Shell({ onSignedOut }: { onSignedOut: () => void }) {
+  const [pending, setPending] = useState(0);
+  const loc = useLocation();
+  useEffect(() => {
+    capture.pendingCount().then((r) => setPending(r.count)).catch(() => undefined);
+  }, [loc.pathname]);
   return (
     <StoreProvider onSignedOut={onSignedOut}>
       <main className="screen">
@@ -40,26 +63,35 @@ function Shell({ onSignedOut }: { onSignedOut: () => void }) {
           <Route path="/reports" element={<ReportsPage />} />
           <Route path="/ask" element={<AskPage />} />
           <Route path="/wallets/:id" element={<WalletDetailPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/settings/categories" element={<CategoriesPage />} />
-          <Route path="/settings/goals" element={<GoalsPage />} />
-          <Route path="/settings/bills" element={<BillsPage />} />
-          <Route path="/settings/data" element={<DataPage />} />
-          <Route path="/settings/sources" element={<SourcesPage />} />
-          <Route path="/settings/rules" element={<RulesPage />} />
           <Route path="/review" element={<ReviewPage />} />
           <Route path="/investments" element={<InvestmentsPage />} />
+          <Route path="/settings" element={<SettingsLayout />}>
+            <Route index element={<SettingsPage />} />
+            <Route path="categories" element={<CategoriesPage />} />
+            <Route path="goals" element={<GoalsPage />} />
+            <Route path="bills" element={<BillsPage />} />
+            <Route path="data" element={<DataPage />} />
+            <Route path="sources" element={<SourcesPage />} />
+            <Route path="rules" element={<RulesPage />} />
+          </Route>
           <Route path="/add" element={<AddPage />} />
           <Route path="/import" element={<ImportPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
       <nav className="nav" aria-label="Main">
+        <div className="brand" aria-hidden="true"><span>M</span>Moaney</div>
         <NavLink to="/" end><Icon d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" />Home</NavLink>
         <NavLink to="/history"><Icon d="M4 6h16M4 12h16M4 18h10" />History</NavLink>
         <NavLink to="/reports"><Icon d="M5 20V10M12 20V4M19 20v-7" />Reports</NavLink>
         <NavLink to="/wallets"><Icon d="M3 7a2 2 0 0 1 2-2h13v4M3 7v11a2 2 0 0 0 2 2h15V9H5a2 2 0 0 1-2-2zM16 14.5h.01" />Wallets</NavLink>
         <NavLink to="/add"><Icon d="M12 5v14M5 12h14" />Add</NavLink>
+        <div className="nav-extra">
+          <NavLink to="/review"><Icon d="M5 13l4 4L19 7" />Review{pending > 0 && <b className="nav-badge">{pending}</b>}</NavLink>
+          <NavLink to="/ask"><Icon d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z" />Ask Moaney</NavLink>
+          <NavLink to="/investments"><Icon d="M3 17l6-6 4 4 8-8M15 7h6v6" />Investments</NavLink>
+          <NavLink to="/settings"><Icon d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3.9a7 7 0 0 0-2-1.2L14.2 3h-4l-.4 2.6a7 7 0 0 0-2 1.2l-2.3-.9-2 3.4 2 1.5a7 7 0 0 0 0 2.4l-2 1.5 2 3.4 2.3-.9a7 7 0 0 0 2 1.2l.4 2.6h4l.4-2.6a7 7 0 0 0 2-1.2l2.3.9 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z" />Settings</NavLink>
+        </div>
       </nav>
     </StoreProvider>
   );

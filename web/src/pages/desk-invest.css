@@ -1,0 +1,57 @@
+/* Desktop layouts for Investments and Sign in. Phones keep the single-column layout. */
+.login-wrap { display: contents; }
+.login-brand { display: none; }
+
+@media (min-width: 1024px) {
+  /* ---- Investments ---- */
+  .inv { display: flex; flex-direction: column; gap: 20px; position: relative; }
+  .inv-back { display: none; }
+  .inv-eyebrow { display: block; font-weight: 600; font-size: 13px; }
+  .inv-head h1 { font-size: 28px; }
+  .inv-actions { position: absolute; top: 0; right: 0; width: auto; gap: 10px; }
+  .inv-actions .btn { flex: none; min-height: 46px; padding: 0 20px; font-size: 14px; }
+  .inv-prices { order: 1; background: var(--card); color: var(--ink); border: 1px solid var(--line); }
+  .inv-add { order: 2; background: var(--accent); color: #fff; }
+  .inv-actions .btn:disabled { opacity: 0.5; }
+  .inv-note { order: 5; }
+
+  .inv-top { display: grid; grid-template-columns: 1.35fr 1fr; gap: 20px; align-items: stretch; }
+  .inv .hero { padding: 26px 28px; gap: 6px; }
+  .inv .hero .value { font-size: 44px; }
+  .inv .hero .value span { font-size: 22px; margin-right: 8px; }
+  .inv .hero .gain { font-size: 15px; }
+  .inv-top > section[aria-label='Allocation'] { padding: 22px 24px; }
+  .inv .legend { flex-direction: column; gap: 10px; margin-top: 16px; font-size: 14px; }
+  .inv .legend > span { display: flex; align-items: center; }
+  .inv .legend .dot { margin-right: 10px; }
+  .inv .legend .lg-p { margin-left: auto; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .inv .alloc { height: 14px; border-radius: 7px; }
+
+  .inv-table { padding: 0; overflow: hidden; }
+  .inv-thead, .inv-row { display: grid; grid-template-columns: 2.4fr 1.1fr 1.3fr 1.3fr 1.4fr 1.2fr; gap: 16px; align-items: center; padding: 0 24px; }
+  .inv-thead { height: 44px; border-bottom: 1px solid var(--line); font-size: 12px; font-weight: 700; color: var(--muted); }
+  .inv-row { min-height: 68px; height: 68px; font-size: 14px; }
+  .inv-row:hover { background: var(--bg); }
+  .inv-row .inv-right, .inv-sub-m { display: none; }
+  .inv-sub-d { display: block; }
+  .d-cell { display: block; }
+  .inv .r { text-align: right; }
+  .inv-row .gain-up, .inv-row .gain-down { font-size: 14px; }
+  .inv-row .add-price { font-size: 14px; }
+}
+
+/* ---- Sign in (outside the sidebar shell) ---- */
+@media (min-width: 1024px) {
+  .screen.login-screen { margin: 0 auto; padding: 0; max-width: none; width: 100%; min-height: 100dvh; align-items: center; justify-content: center; }
+  .screen.login-screen > .login-wrap { display: flex; width: 880px; max-width: 880px; height: 520px; border-radius: 28px; overflow: hidden; background: var(--card); }
+  .login-brand { display: flex; flex: 1; flex-direction: column; justify-content: space-between; padding: 48px; background: #14201b; color: #fff; }
+  .login-mark { display: flex; align-items: center; gap: 12px; font-size: 26px; font-weight: 800; letter-spacing: -0.03em; }
+  .login-mark span { width: 44px; height: 44px; border-radius: 14px; background: #0e7a55; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+  .login-tag { font-size: 34px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.15; }
+  .login-sub { font-size: 15px; line-height: 1.5; color: #b4c0b9; margin-top: 12px; }
+  .login-fine { font-size: 12px; color: #9fb0a7; }
+  .screen.login-screen .login-form { flex: 1; width: auto; max-width: none; border-radius: 0; padding: 48px; justify-content: center; gap: 16px; }
+  .login-form h1 { font-size: 24px; }
+  .login-form .input { min-height: 52px; font-size: 16px; }
+  .login-form .btn { min-height: 52px; font-size: 15px; }
+}

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { reportsApi, type Overview, type Period } from '../api-reports';
 import { useStore } from '../store';
 import './reports.css';
+import './desk-money.css';
 
 const PERIODS: [Period, string][] = [['daily', 'Daily'], ['weekly', 'Weekly'], ['monthly', 'Monthly'], ['yearly', 'Yearly']];
 const jakartaToday = () => new Date(Date.now() + 7 * 3600_000).toISOString().slice(0, 10);
@@ -99,32 +100,44 @@ export function ReportsPage() {
 
   return (
     <>
-      <header className="row between">
-        <h1>Reports</h1>
-        <div className="period-pill">
-          <button aria-label="Previous period" onClick={() => data && setDate(data.prevDate)} disabled={!data}><Chevron dir="left" /></button>
-          <span aria-live="polite">{data?.label ?? '…'}</span>
-          <button aria-label="Next period" onClick={() => data && setDate(data.nextDate)} disabled={!data || isCurrent}><Chevron dir="right" /></button>
-        </div>
-      </header>
+      <div className="d-top">
+        <header className="row between">
+          <h1>Reports</h1>
+          <div className="period-pill">
+            <button aria-label="Previous period" onClick={() => data && setDate(data.prevDate)} disabled={!data}><Chevron dir="left" /></button>
+            <span aria-live="polite">{data?.label ?? '…'}</span>
+            <button aria-label="Next period" onClick={() => data && setDate(data.nextDate)} disabled={!data || isCurrent}><Chevron dir="right" /></button>
+          </div>
+        </header>
 
-      <div className="seg" role="group" aria-label="Period">
-        {PERIODS.map(([p, label]) => (
-          <button key={p} type="button" aria-pressed={period === p} onClick={() => { setPeriod(p); setDate(jakartaToday()); }}>{label}</button>
-        ))}
+        <div className="seg" role="group" aria-label="Period">
+          {PERIODS.map(([p, label]) => (
+            <button key={p} type="button" aria-pressed={period === p} onClick={() => { setPeriod(p); setDate(jakartaToday()); }}>{label}</button>
+          ))}
+        </div>
       </div>
 
       {error && <div className="notice" role="alert">{error}</div>}
 
       {data && (
-        <>
+        <div className="d-reports">
+          <div className="d-kpis">
+            <div className="card"><div className="muted small">Money out</div><div className="d-kpi num">{money(data.out)}</div><div className="muted small">{data.in > 0 ? (delta > 0 ? `${compact(delta)} over income` : `${compact(-delta)} under income`) : 'No income recorded'}</div></div>
+            <div className="card"><div className="muted small">Money in</div><div className="d-kpi num">{money(data.in)}</div><div className="muted small">Salary and other income</div></div>
+            <div className="card"><div className="muted small">Average per day</div><div className="d-kpi num">{money(data.avgPerDay)}</div><div className="muted small">{data.count} {data.count === 1 ? 'payment' : 'payments'} in this period</div></div>
+            <div className="card"><div className="muted small">Versus {data.previousLabel}</div><div className="d-kpi num">{data.out >= data.previousOut ? '+' : '−'}{money(Math.abs(data.out - data.previousOut))}</div><div className="muted small">{data.out >= data.previousOut ? 'More' : 'Less'} spent than {data.previousLabel}</div></div>
+          </div>
+          <div className="d-main">
+          <div className="d-left">
           <section className="card" aria-label="Money out">
-            <div className="muted small" style={{ fontWeight: 600 }}>Money out</div>
-            <div className="big" style={{ fontSize: 30 }}>{money(data.out)}</div>
-            <div className="muted" style={{ fontSize: 13 }}>
-              {data.in > 0 ? (
-                <>of {compact(data.in)} income · {delta > 0 ? <b style={{ color: 'var(--over)' }}>{compact(delta)} over</b> : <b>{compact(-delta)} left</b>}</>
-              ) : 'No income recorded in this period'}
+            <div className="d-hide">
+              <div className="muted small" style={{ fontWeight: 600 }}>Money out</div>
+              <div className="big" style={{ fontSize: 30 }}>{money(data.out)}</div>
+              <div className="muted" style={{ fontSize: 13 }}>
+                {data.in > 0 ? (
+                  <>of {compact(data.in)} income · {delta > 0 ? <b style={{ color: 'var(--over)' }}>{compact(delta)} over</b> : <b>{compact(-delta)} left</b>}</>
+                ) : 'No income recorded in this period'}
+              </div>
             </div>
 
             {data.out === 0 ? (
@@ -141,14 +154,16 @@ export function ReportsPage() {
           </section>
 
           {data.cumulative && data.out > 0 && <Cumulative data={data} money={money} />}
-
+          </div>
+          <div className="d-right">
           {data.categories.length > 0 && (
             <section className="card" style={{ display: 'flex', flexDirection: 'column', gap: 12 }} aria-label="Where it went">
               <div className="row between small"><b>Where it went</b><span className="muted">{data.categories.length} {data.categories.length === 1 ? 'category' : 'categories'}</span></div>
               {data.categories.map((c) => (
-                <div key={c.categoryId}>
-                  <div className="row between" style={{ fontSize: 14, fontWeight: 700, marginBottom: 6 }}>
+                <div key={c.categoryId} className="cat-row">
+                  <div className="row between cat-head" style={{ fontSize: 14, fontWeight: 700, marginBottom: 6 }}>
                     <span><span aria-hidden="true">{c.emoji}</span> {c.name}</span><span className="num">{money(c.total)}</span>
+                    <span className="d-only num muted">{Math.round(c.share * 100)}%</span>
                   </div>
                   <div className="cat-bar" role="img" aria-label={`${Math.round(c.share * 100)} percent of spending`}><div style={{ width: `${maxCat ? Math.max(2, Math.round((c.total / maxCat) * 100)) : 0}%` }} /></div>
                 </div>
@@ -157,7 +172,9 @@ export function ReportsPage() {
           )}
 
           <Link to="/ask" className="btn ghost">Ask Moaney about your money</Link>
-        </>
+          </div>
+          </div>
+        </div>
       )}
     </>
   );

@@ -5,6 +5,7 @@ import { AmountInput, Sheet, toInputAmount, toMinor } from '../components';
 import { useStore } from '../store';
 import { BackHeader } from './Settings';
 import './plan.css';
+import './desk-settings.css';
 
 const jakartaMonth = () => new Date(Date.now() + 7 * 3600_000).toISOString().slice(0, 7);
 
@@ -91,7 +92,7 @@ export function CategoriesPage() {
     const tone = budget && spent > budget ? 'over' : budget && spent >= budget * 0.9 ? 'amber' : '';
     const draft: Draft = { id: c.id, name: c.name, emoji: c.emoji, kind: c.kind, budget: budget ? toInputAmount(budget) : '' };
     return (
-      <button key={c.id} className="item" onClick={() => setEditing(draft)}>
+      <button key={c.id} className="item cat-row" onClick={() => setEditing(draft)}>
         <span className="emoji" aria-hidden="true">{c.emoji}</span>
         <span className="grow">
           <span className="row between"><b>{c.name}</b><span className="amount">{money(spent)}</span></span>
@@ -108,14 +109,16 @@ export function CategoriesPage() {
     );
   }
 
+  const catHead = <div className="cat-head" aria-hidden="true"><span>Category</span><span>Budget used</span><span>Spent</span></div>;
+
   return (
     <>
       <BackHeader to="/settings" title="Categories" sub={`Spent in ${label} · budgets are optional`} />
       {error && <div className="notice" role="alert">{error}</div>}
       <h2>Expenses · {label}</h2>
-      <div className="card flush">{active.filter((x) => x.kind === 'expense').map(row)}</div>
+      <div className="card flush">{catHead}{active.filter((x) => x.kind === 'expense').map(row)}</div>
       <h2>Income · {label}</h2>
-      <div className="card flush">{active.filter((x) => x.kind === 'income').map(row)}</div>
+      <div className="card flush">{catHead}{active.filter((x) => x.kind === 'income').map(row)}</div>
       <button className="btn" onClick={() => setEditing(blank)}>Add category</button>
       {editing && <CategorySheet draft={editing} onClose={() => setEditing(null)} onSaved={() => void Promise.all([reload(), load()])} />}
     </>

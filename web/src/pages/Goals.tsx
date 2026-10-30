@@ -5,6 +5,7 @@ import { AmountInput, Sheet, toInputAmount, toMinor } from '../components';
 import { useStore } from '../store';
 import { BackHeader } from './Settings';
 import './plan.css';
+import './desk-settings.css';
 
 const jakartaToday = () => new Date(Date.now() + 7 * 3600_000).toISOString().slice(0, 10);
 
@@ -97,6 +98,7 @@ export function GoalsPage() {
       <BackHeader to="/settings" title="Goals" sub={`${compact(totalSaved)} set aside · still counts as your money`} />
       {error && <div className="notice" role="alert">{error}</div>}
       {goals.length === 0 && !error && <div className="card muted" style={{ textAlign: 'center' }}>No goals yet. Set one for something you are saving towards.</div>}
+      <div className="goal-grid">
       {goals.map((g) => {
         const pct = Math.min(100, Math.floor((g.saved / g.target) * 100));
         const need = monthlyNeeded(g);
@@ -117,6 +119,7 @@ export function GoalsPage() {
           </section>
         );
       })}
+      </div>
       <button className="btn" onClick={() => setEditing({ id: null, name: '', target: '', saved: '', dueDate: '' })}>New goal</button>
       {editing && <GoalSheet draft={editing} onClose={() => setEditing(null)} onSaved={() => void load()} />}
       {adding && <AddMoneySheet goal={adding} onClose={() => setAdding(null)} onSaved={() => void load()} />}
