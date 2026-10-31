@@ -6,7 +6,7 @@ import { transactionInput } from '../../shared/schemas.js';
 import type { Db } from '../db/client.js';
 import { captureSources, devices, rules } from '../db/schema.js';
 import {
-  closeDay, confirmEdited, confirmNotification, dismissNotification, getSetting, keepBoth, keepOne, listPending, ownNames,
+  closeDay, confirmEdited, confirmNotification, dismissNotification, getSetting, ignoreWords, keepBoth, keepOne, listPending, ownNames,
   pendingCount, retentionDays, rulesView, setSetting, sourcesView,
 } from '../domain/capture.js';
 import { LedgerError } from '../domain/ledger.js';
@@ -54,6 +54,7 @@ export function captureRouter(db: Db): Router {
       devices: db.select({ id: devices.id, name: devices.name, lastSeenAt: devices.lastSeenAt, createdAt: devices.createdAt }).from(devices).all(),
       paused: getSetting(db, 'capture.paused') === 'true',
       names: ownNames(db),
+      ignore: ignoreWords(db),
       retentionDays: retentionDays(db),
     });
   });
@@ -79,7 +80,14 @@ export function captureRouter(db: Db): Router {
       retentionDays: z.union([z.literal(7), z.literal(30), z.literal(90)]).optional(),
       addName: z.string().trim().min(1).max(80).optional(),
       removeName: z.string().max(80).optional(),
+      addIgnore: z.string().trim().toLowerCase().min(2).max(80).optional(),
+      removeIgnore: z.string().max(80).optional(),
     }).parse(req.body);
+    if (b.addIgnore || b.removeIgnore) {
+      const words = ignoreWords(db).filter((w) => w !== b.removeIgnore);
+      if (b.addIgnore && !words.includes(b.addIgnore)) words.push(b.addIgnore);
+      setSetting(db, 'capture.ignore', JSON.stringify(words));
+    }
     if (b.paused !== undefined) setSetting(db, 'capture.paused', String(b.paused));
     if (b.retentionDays !== undefined) setSetting(db, 'capture.retentionDays', String(b.retentionDays));
     if (b.addName || b.removeName) {

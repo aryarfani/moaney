@@ -28,7 +28,15 @@ export function ownNames(db: Db): string[] {
   } catch { /* fall through */ }
   return DEFAULT_NAMES;
 }
-export const retentionDays = (db: Db) => Number(getSetting(db, 'capture.retentionDays') ?? 30) || 30;
+export function ignoreWords(db: Db): string[] {
+  try {
+    const v = JSON.parse(getSetting(db, 'capture.ignore') ?? '[]') as unknown;
+    if (Array.isArray(v)) return v.filter((x): x is string => typeof x === 'string');
+  } catch { /* fall through */ }
+  return [];
+}
+export const isIgnored = (db: Db, s: string) => ignoreWords(db).some((w) => s.toLowerCase().includes(w));
+export const retentionDays =(db: Db) => Number(getSetting(db, 'capture.retentionDays') ?? 30) || 30;
 
 // ---- parsing
 

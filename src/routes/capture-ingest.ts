@@ -4,7 +4,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import type { Db } from '../db/client.js';
 import { devices } from '../db/schema.js';
-import { getSetting, ingest, isSecurityText, normaliseApp } from '../domain/capture.js';
+import { getSetting, ingest, isIgnored, isSecurityText, normaliseApp } from '../domain/capture.js';
 import { LedgerError } from '../domain/ledger.js';
 import { jakartaNow } from '../domain/time.js';
 
@@ -70,6 +70,10 @@ export function captureIngestRouter(db: Db): Router {
     if (!app) throw new LedgerError('Unknown app', 400);
     if (isSecurityText(`${input.title ?? ''} ${input.text}`)) {
       res.status(202).json({ dropped: 'security' });
+      return;
+    }
+    if (isIgnored(db, `${input.title ?? ''} ${input.text}`)) {
+      res.status(202).json({ dropped: 'ignored' });
       return;
     }
     if (getSetting(db, 'capture.paused') === 'true') {

@@ -36,6 +36,7 @@ export function SourcesPage() {
   const [deviceName, setDeviceName] = useState('My phone');
   const [issued, setIssued] = useState<{ name: string; token: string } | null>(null);
   const [newName, setNewName] = useState('');
+  const [newIgnore, setNewIgnore] = useState('');
 
   const load = useCallback(async () => {
     try {
@@ -158,6 +159,23 @@ export function SourcesPage() {
         <form className="row" onSubmit={(e) => { e.preventDefault(); if (newName.trim()) void run(async () => { await capture.settings({ addName: newName.trim() }); setNewName(''); }); }}>
           <input className="input grow" aria-label="Add a name" placeholder="Name as it appears in the bank app" value={newName} onChange={(e) => setNewName(e.target.value)} maxLength={80} />
           <button className="btn ghost" disabled={!newName.trim()}>Add</button>
+        </form>
+      </div>
+
+      <h2>Ignored words</h2>
+      <div className="cap-card">
+        <div className="muted small">Notifications containing any of these are dropped and never show up in Close the day.</div>
+        <div className="chips">
+          {view?.ignore.map((n) => (
+            <span key={n} className="cap-tag" style={{ height: 32, fontSize: 12, gap: 6 }}>
+              {n}
+              <button className="cap-link" style={{ minHeight: 0, padding: 0 }} aria-label={`Remove ${n}`} onClick={() => void run(() => capture.settings({ removeIgnore: n }))}>×</button>
+            </span>
+          ))}
+        </div>
+        <form className="row" onSubmit={(e) => { e.preventDefault(); if (newIgnore.trim().length >= 2) void run(async () => { await capture.settings({ addIgnore: newIgnore.trim() }); setNewIgnore(''); }); }}>
+          <input className="input grow" aria-label="Add an ignored word" placeholder="e.g. GoPay Coins" value={newIgnore} onChange={(e) => setNewIgnore(e.target.value)} maxLength={80} />
+          <button className="btn ghost" disabled={newIgnore.trim().length < 2}>Add</button>
         </form>
       </div>
 

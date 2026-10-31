@@ -74,10 +74,13 @@ export function ReviewPage() {
           busy={busy}
           changing={changing === it.id}
           onChange={() => setChanging(changing === it.id ? null : it.id)}
-          onConfirm={() => run(() => capture.confirm(it.id))}
           onPick={(categoryId) => run(() => capture.confirm(it.id, { categoryId }))}
           onEdit={() => setEditing(it)}
-          onDismiss={() => { if (confirm('Dismiss this notification? Nothing will be recorded.')) void run(() => capture.dismiss(it.id)); }}
+          onDismiss={() => void run(() => capture.dismiss(it.id))}
+          onIgnore={() => {
+            const word = prompt('Never show notifications containing:', it.text.split(/\s+/).slice(0, 3).join(' '))?.trim();
+            if (word && word.length >= 2) void run(async () => { await capture.settings({ addIgnore: word }); await capture.dismiss(it.id); });
+          }}
           onKeepOne={() => run(() => capture.keepOne(it.id))}
           onKeepBoth={() => run(() => capture.keepBoth(it.id))}
           money={money}
@@ -142,10 +145,10 @@ export function ReviewPage() {
       )}
 
       {editing && (
-        <Sheet title="Edit entry" onClose={() => setEditing(null)}>
+        <Sheet title="Add entry" onClose={() => setEditing(null)}>
           <TxnForm
             busy={busy}
-            submitLabel="Save and confirm"
+            submitLabel="Add"
             initial={{
               type: editing.type,
               amount: editing.amount ? toInputAmount(editing.amount) : '',
@@ -171,7 +174,7 @@ export function ReviewPage() {
 function Card(p: {
   it: ReviewItem; busy: boolean; changing: boolean; money: (n: number) => string; walletName: (id: number | null) => string | undefined;
   emoji?: string; categoryName?: string; cats: { id: number; name: string; emoji: string }[];
-  onChange: () => void; onConfirm: () => void; onPick: (id: number) => void; onEdit: () => void; onDismiss: () => void; onKeepOne: () => void; onKeepBoth: () => void;
+  onChange: () => void; onPick: (id: number) => void; onEdit: () => void; onDismiss: () => void; onIgnore: () => void; onKeepOne: () => void; onKeepBoth: () => void;
 }) {
   const { it } = p;
   const tag = TAGS[it.kind];
@@ -239,18 +242,17 @@ function Card(p: {
         <div className="cap-actions">
           <button className="btn grow" disabled={p.busy} onClick={p.onEdit}>Edit</button>
           <button className="btn ghost" disabled={p.busy} onClick={p.onDismiss}>Dismiss</button>
+          <button className="btn ghost" disabled={p.busy} onClick={p.onIgnore}>Ignore like this</button>
         </div>
       ) : (
         <>
           <div className="cap-actions">
-            <button className="btn grow" disabled={p.busy} onClick={p.onConfirm}>Confirm</button>
-            {isTransfer
-              ? <button className="btn ghost" disabled={p.busy} onClick={p.onEdit}>Edit</button>
-              : <button className="btn ghost" disabled={p.busy} aria-expanded={p.changing} onClick={p.onChange}>Change</button>}
+            <button className="btn grow" disabled={p.busy} onClick={p.onEdit}>Add</button>
+            {!isTransfer && <button className="btn ghost" disabled={p.busy} aria-expanded={p.changing} onClick={p.onChange}>Change</button>}
           </div>
           <div className="row" style={{ justifyContent: 'center', gap: 16 }}>
-            {!isTransfer && <button className="cap-link" onClick={p.onEdit}>Edit details</button>}
             <button className="cap-link" onClick={p.onDismiss}>Dismiss</button>
+            <button className="cap-link" onClick={p.onIgnore}>Ignore like this</button>
           </div>
         </>
       )}
