@@ -87,6 +87,7 @@ describe('capture ingest', () => {
   it('accepts package-style app names and rejects unknown apps', async () => {
     const { send } = await boot();
     expect((await send('com.gojek.gopay', GOPAY)).status).toBe(201);
+    expect((await send('com.shopee.id', 'ShopeePay pembayaran Rp25.000 ke Toko A berhasil')).status).toBe(201);
     expect((await send('com.example.chat', GOPAY)).status).toBe(400);
   });
 
@@ -222,7 +223,7 @@ describe('capture ingest', () => {
     expect(names.body.names).toContain('RIFQI');
     await send('gopay', GOPAY);
     const view = (await agent.get('/api/v1/capture/sources')).body as { apps: { id: number; app: string; hasParser: boolean; total: number }[]; devices: { id: number; lastSeenAt: string }[]; lastNotificationAt: string };
-    expect(view.apps.map((a) => a.app)).toEqual(['gopay', 'mybca', 'jago']);
+    expect(view.apps.map((a) => a.app)).toEqual(['gopay', 'mybca', 'jago', 'shopee']);
     expect(view.apps.find((a) => a.app === 'gopay')!.total).toBe(1);
     expect(view.apps.find((a) => a.app === 'jago')!.hasParser).toBe(false);
     expect(view.devices[0]!.lastSeenAt).toBeTruthy();

@@ -6,7 +6,7 @@ import { categoryByDescription } from './insights.js';
 import { createTransaction, LedgerError } from './ledger.js';
 import { addDays, jakartaNow } from './time.js';
 
-export const APPS = { gopay: 'GoPay', mybca: 'myBCA', jago: 'Jago' } as const;
+export const APPS = { gopay: 'GoPay', mybca: 'myBCA', jago: 'Jago', shopee: 'Shopee' } as const;
 export type AppKey = keyof typeof APPS;
 
 export const DEFAULT_NAMES = ['A RIFQI YARZUQ ARFANI'];
@@ -45,6 +45,7 @@ export function normaliseApp(input: string): AppKey | null {
   if (s.includes('gopay') || s.includes('gojek')) return 'gopay';
   if (s.includes('bca')) return 'mybca';
   if (s.includes('jago')) return 'jago';
+  if (s.includes('shopee')) return 'shopee';
   return null;
 }
 
@@ -96,13 +97,16 @@ export function parseNotification(text: string): Parsed {
 // ---- sources
 
 export function ensureSources(db: Db): void {
-  if (db.select().from(captureSources).limit(1).all().length > 0) return;
+  const have = new Set(db.select().from(captureSources).all().map((s) => s.app));
   const byName = (n: string) => db.select().from(wallets).where(eq(wallets.name, n)).get()?.id ?? null;
-  db.insert(captureSources).values([
+  const all = [
     { app: 'gopay', label: 'GoPay', walletId: byName('GoPay'), hasParser: true },
     { app: 'mybca', label: 'myBCA', walletId: byName('BCA'), hasParser: true },
     { app: 'jago', label: 'Jago', walletId: byName('Jago'), hasParser: false },
-  ]).run();
+    { app: 'shopee', label: 'Shopee', walletId: byName('ShopeePay'), hasParser: false },
+  ];
+  const missing = all.filter((s) => !have.has(s.app));
+  if (missing.length) db.insert(captureSources).values(missing).run();
 }
 
 // ---- ingest
