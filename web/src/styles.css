@@ -90,3 +90,16 @@ textarea.input { padding: 12px 14px; min-height: 84px; resize: vertical; }
   .sheet-wrap { align-items: center; }
   .sheet { border-radius: 24px; max-width: 560px; max-height: 88dvh; }
 }
+
+.amt-wrap { position: relative; }
+.amt-ghost { position: absolute; inset: 0; padding: 0 14px; display: flex; align-items: center; pointer-events: none; color: var(--muted); }
+.amt-ghost i { visibility: hidden; font-style: normal; }
+.txn-quick { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-content: start; }
+.txn-quick > * { grid-column: 1 / -1; }
+.txn-quick > .q-wal, .txn-quick > .q-date { grid-column: auto; }
+.txn-quick .input { min-height: 44px; }
+.txn-quick .q-amt { order: 1; } .txn-quick .q-wal { order: 2; } .txn-quick .q-date { order: 3; }
+.txn-quick .q-cat { order: 4; } .txn-quick .q-desc { order: 5; } .txn-quick .q-note { order: 6; } .txn-quick .q-btn { order: 7; }
+.txn-quick .q-desc label, .txn-quick .q-note label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.txn-quick .chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.txn-quick .chip { flex: none; min-height: 36px; }

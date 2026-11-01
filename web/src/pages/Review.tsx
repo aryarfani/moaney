@@ -147,6 +147,7 @@ export function ReviewPage() {
       {editing && (
         <Sheet title="Add entry" onClose={() => setEditing(null)}>
           <TxnForm
+            quick
             busy={busy}
             submitLabel="Add"
             initial={{

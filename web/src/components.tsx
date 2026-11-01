@@ -104,17 +104,20 @@ interface FormValue {
   note: string;
 }
 
-export function TxnForm({ initial, submitLabel, onSubmit, busy }: { initial: FormValue; submitLabel: string; onSubmit: (v: FormValue) => void; busy?: boolean }) {
+/** `quick`: compact layout, and 1-3 digit amounts mean thousands ("133" -> 133.000). For adding new entries only. */
+export function TxnForm({ initial, submitLabel, onSubmit, busy, quick }: { initial: FormValue; submitLabel: string; onSubmit: (v: FormValue) => void; busy?: boolean; quick?: boolean }) {
   const { wallets, categories } = useStore();
   const [v, setV] = useState(initial);
   const set = <K extends keyof FormValue>(k: K, val: FormValue[K]) => setV((p) => ({ ...p, [k]: val }));
   const real = wallets.filter((w) => !w.archived && (w.kind !== 'history' || v.type !== 'transfer'));
   const cats = categories.filter((c) => !c.archived && c.kind === v.type);
-  const amountOk = toMinor(v.amount) !== null && toMinor(v.amount)! > 0;
+  const thousands = quick && /^\d{1,3}$/.test(v.amount);
+  const amount = thousands ? `${v.amount}.000` : v.amount;
+  const amountOk = toMinor(amount) !== null && toMinor(amount)! > 0;
   const ready = amountOk && v.walletId && (v.type === 'transfer' ? v.toWalletId && v.toWalletId !== v.walletId : v.categoryId);
 
   return (
-    <form className="card" style={{ display: 'flex', flexDirection: 'column', gap: 12 }} onSubmit={(e) => { e.preventDefault(); if (ready) onSubmit(v); }}>
+    <form className={`card${quick ? ' txn-quick' : ''}`} style={quick ? undefined : { display: 'flex', flexDirection: 'column', gap: 12 }} onSubmit={(e) => { e.preventDefault(); if (ready) onSubmit({ ...v, amount }); }}>
       <div className="seg" role="group" aria-label="Type">
         {(['expense', 'income', 'transfer'] as const).map((t) => (
           <button type="button" key={t} aria-pressed={v.type === t} onClick={() => setV((p) => ({ ...p, type: t, categoryId: null, toWalletId: null }))}>
@@ -122,19 +125,22 @@ export function TxnForm({ initial, submitLabel, onSubmit, busy }: { initial: For
           </button>
         ))}
       </div>
-      <div className="field">
+      <div className="field q-amt">
         <label htmlFor="amt">Amount (Rp)</label>
-        <AmountInput id="amt" className="input" value={v.amount} onChange={(x) => set('amount', x)} placeholder="16.000" />
+        <div className="amt-wrap">
+          <AmountInput id="amt" className="input" value={v.amount} onChange={(x) => set('amount', x)} placeholder="16.000" />
+          {thousands && <span className="amt-ghost" aria-hidden="true"><i>{v.amount}</i>.000</span>}
+        </div>
         {v.amount && !amountOk && <span className="err">Enter a number, e.g. 16.000</span>}
       </div>
-      <div className="field">
+      <div className="field q-wal">
         <label htmlFor="wal">{v.type === 'transfer' ? 'From' : 'Wallet'}</label>
         <select id="wal" className="input" value={v.walletId} onChange={(e) => set('walletId', Number(e.target.value))}>
           {real.map((w) => <option key={w.id} value={w.id}>{w.emoji} {w.name}</option>)}
         </select>
       </div>
       {v.type === 'transfer' ? (
-        <div className="field">
+        <div className="field q-cat">
           <label htmlFor="to">To</label>
           <select id="to" className="input" value={v.toWalletId ?? ''} onChange={(e) => set('toWalletId', Number(e.target.value) || null)}>
             <option value="">Choose…</option>
@@ -142,7 +148,7 @@ export function TxnForm({ initial, submitLabel, onSubmit, busy }: { initial: For
           </select>
         </div>
       ) : (
-        <div className="field">
+        <div className="field q-cat">
           <label>Category</label>
           <div className="chips" role="group" aria-label="Category">
             {cats.map((c) => (
@@ -153,19 +159,19 @@ export function TxnForm({ initial, submitLabel, onSubmit, busy }: { initial: For
           </div>
         </div>
       )}
-      <div className="field">
+      <div className="field q-desc">
         <label htmlFor="desc">Description</label>
-        <input id="desc" className="input" value={v.description} onChange={(e) => set('description', e.target.value)} maxLength={200} />
+        <input id="desc" className="input" placeholder="Description" value={v.description} onChange={(e) => set('description', e.target.value)} maxLength={200} />
       </div>
-      <div className="field">
+      <div className="field q-date">
         <label htmlFor="date">Date</label>
         <input id="date" className="input" type="date" value={v.date} onChange={(e) => set('date', e.target.value)} />
       </div>
-      <div className="field">
+      <div className="field q-note">
         <label htmlFor="note">Note</label>
-        <input id="note" className="input" value={v.note} onChange={(e) => set('note', e.target.value)} maxLength={1000} />
+        <input id="note" className="input" placeholder="Note" value={v.note} onChange={(e) => set('note', e.target.value)} maxLength={1000} />
       </div>
-      <button className="btn block" disabled={!ready || busy}>{submitLabel}</button>
+      <button className="btn block q-btn" disabled={!ready || busy}>{submitLabel}</button>
     </form>
   );
 }
