@@ -88,7 +88,8 @@ export function ReviewPage() {
         const next = items[Math.max(0, Math.min(items.length - 1, i + (e.key === 'ArrowDown' ? 1 : -1)))]!;
         setSelectedId(next.id);
         document.getElementById(`q-${next.id}`)?.scrollIntoView({ block: 'nearest' });
-      } else if (e.key === 'ArrowLeft') startIgnore(selected);
+      } else if (e.key === 'Escape') void run(() => capture.dismiss(selected.id), 'Dismissed');
+      else if (e.key === 'ArrowLeft') startIgnore(selected);
       else if (e.key === 'ArrowRight') {
         if (selected.kind === 'possible_duplicate') void run(() => capture.keepOne(selected.id), 'Kept one');
         else setEditing(selected);
@@ -164,7 +165,7 @@ export function ReviewPage() {
               </button>
             ))}
             </div>
-            <div className="kbd-hint">↑ ↓ browse · ← ignore · → add</div>
+            <div className="kbd-hint">↑ ↓ browse · ← ignore · → add · Esc dismiss</div>
           </div>
           <div className="d-detail">{selected && renderCard(selected)}</div>
         </div>
