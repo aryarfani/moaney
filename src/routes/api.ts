@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, like, lte, or, type SQL } from 'drizzle-orm';
+import { and, count, desc, eq, gte, like, lte, or, type SQL } from 'drizzle-orm';
 import { Router, type NextFunction, type Request, type Response } from 'express';
 import { z } from 'zod';
 import { categoryInput, categoryPatch, transactionInput, transactionPatch, walletInput, walletPatch } from '../../shared/schemas.js';
@@ -59,7 +59,8 @@ export function apiRouter(db: Db): Router {
 
   // ---- categories
   r.get('/categories', (_req, res) => {
-    res.json(db.select().from(categories).orderBy(categories.sort, categories.id).all());
+    const uses = new Map(db.select({ id: transactions.categoryId, n: count() }).from(transactions).where(eq(transactions.status, 'posted')).groupBy(transactions.categoryId).all().map((u) => [u.id, u.n]));
+    res.json(db.select().from(categories).orderBy(categories.sort, categories.id).all().map((c) => ({ ...c, uses: uses.get(c.id) ?? 0 })));
   });
   r.post('/categories', (req, res) => {
     const row = db.insert(categories).values(categoryInput.parse(req.body)).returning().get();

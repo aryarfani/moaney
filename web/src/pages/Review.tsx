@@ -118,7 +118,7 @@ export function ReviewPage() {
           walletName={(id) => wallet(id)?.name}
           emoji={category(it.categoryId)?.emoji}
           categoryName={category(it.categoryId)?.name}
-          cats={categories.filter((c) => !c.archived && c.kind === it.type)}
+          cats={categories.filter((c) => !c.archived && c.kind === it.type).sort((a, b) => (b.uses ?? 0) - (a.uses ?? 0))}
         />
       );
 

@@ -117,7 +117,7 @@ export function TxnForm({ initial, submitLabel, onSubmit, busy, quick }: { initi
   const [v, setV] = useState(initial);
   const set = <K extends keyof FormValue>(k: K, val: FormValue[K]) => setV((p) => ({ ...p, [k]: val }));
   const real = wallets.filter((w) => !w.archived && (w.kind !== 'history' || v.type !== 'transfer'));
-  const cats = categories.filter((c) => !c.archived && c.kind === v.type);
+  const cats = categories.filter((c) => !c.archived && c.kind === v.type).sort((a, b) => (b.uses ?? 0) - (a.uses ?? 0));
   const thousands = quick && /^\d{1,3}$/.test(v.amount);
   const amount = thousands ? `${v.amount}.000` : v.amount;
   const amountOk = toMinor(amount) !== null && toMinor(amount)! > 0;

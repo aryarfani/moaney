@@ -15,6 +15,7 @@ export interface Category {
   emoji: string;
   kind: 'expense' | 'income';
   archived: boolean;
+  uses?: number;
 }
 export interface Txn {
   id: number;
