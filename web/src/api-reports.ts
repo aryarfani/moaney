@@ -20,6 +20,7 @@ export interface Overview {
   leadingBlanks: number;
   cumulative: { current: number[]; previous: number[] } | null;
   categories: { categoryId: number; name: string; emoji: string; total: number; share: number }[];
+  incomeCategories: { categoryId: number; name: string; emoji: string; total: number }[];
 }
 
 export interface Answer {

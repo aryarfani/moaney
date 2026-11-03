@@ -41,11 +41,71 @@ function BarTrend({ data, compact }: { data: Overview; compact: (n: number) => s
     <div className="bars" role="img" aria-label={`Spending by ${data.period === 'yearly' ? 'month' : 'day'}`}>
       {data.trend.map((t) => (
         <div key={t.key} className={`col ${t.total === 0 ? 'zero' : ''}`} title={`${t.label}: ${compact(t.total)}`}>
-          <i style={{ height: `${max ? Math.max(3, Math.round((t.total / max) * 72)) : 3}px` }} />
+          {t.total > 0 && <em>{compact(t.total).replace('Rp', '')}</em>}
+          <i style={{ height: `${max ? Math.max(3, Math.round((t.total / max) * 56)) : 3}px` }} />
           <span>{data.period === 'yearly' ? t.label.slice(0, 1) : t.label.split(' ')[0]}</span>
         </div>
       ))}
     </div>
+  );
+}
+
+interface FlowNode { name: string; value: number; color: string }
+
+/** Income sources -> one pool -> spending categories. A shortfall enters as "Beyond income"; a surplus leaves as "Saved". */
+function Sankey({ data, compact }: { data: Overview; compact: (n: number) => string }) {
+  const left: FlowNode[] = data.incomeCategories.map((c) => ({ name: `${c.emoji} ${c.name}`, value: c.total, color: 'var(--accent)' }));
+  const right: FlowNode[] = data.categories.map((c) => ({ name: `${c.emoji} ${c.name}`, value: c.total, color: 'var(--h2)' }));
+  const sum = (xs: FlowNode[]) => xs.reduce((s, n) => s + n.value, 0);
+  const gap = sum(right) - sum(left);
+  if (gap > 0) left.push({ name: 'Beyond income', value: gap, color: 'var(--over)' });
+  else if (gap < 0) right.push({ name: 'Saved', value: -gap, color: 'var(--accent)' });
+  const T = Math.max(sum(left), sum(right));
+  if (T <= 0) return null;
+
+  const W = 900, GAP = 12, MIN = 6, NW = 14, XL = 180, XM = 440, XR = 706;
+  const k = Math.min(...[left, right].map((col) => (400 - GAP * Math.max(0, col.length - 1)) / T));
+  const h = (v: number) => Math.max(MIN, v * k);
+  const colH = (col: FlowNode[]) => col.reduce((s, n) => s + h(n.value), 0) + GAP * Math.max(0, col.length - 1);
+  const H = Math.max(colH(left), colH(right)) + 8;
+  const place = (col: FlowNode[]) => {
+    let y = (H - colH(col)) / 2;
+    return col.map((n) => { const p = { n, y, h: h(n.value) }; y += p.h + GAP; return p; });
+  };
+  const L = place(left), R = place(right);
+  const midH = Math.max(L.reduce((s, p) => s + p.h, 0), R.reduce((s, p) => s + p.h, 0));
+  const midTop = (H - midH) / 2;
+  const stack = (ps: { h: number }[]) => { let y = midTop + (midH - ps.reduce((s, p) => s + p.h, 0)) / 2; return ps.map((p) => { const t = y; y += p.h; return t; }); };
+  const lm = stack(L), rm = stack(R);
+  const ribbon = (x0: number, y0: number, x1: number, y1: number, hh: number) => {
+    const c = (x1 - x0) / 2;
+    return `M${x0} ${y0}C${x0 + c} ${y0} ${x1 - c} ${y1} ${x1} ${y1}L${x1} ${y1 + hh}C${x1 - c} ${y1 + hh} ${x0 + c} ${y0 + hh} ${x0} ${y0 + hh}Z`;
+  };
+  const label = (n: FlowNode) => `${n.name.length > 18 ? n.name.slice(0, 17) + '…' : n.name}  ${compact(n.value).replace('Rp', '')}`;
+
+  return (
+    <section className="card d-flow" aria-label="Money flow">
+      <div className="row between small" style={{ marginBottom: 8 }}><b>Where the money flowed</b><span className="muted">{data.label}</span></div>
+      <div className="flow-scroll">
+        <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Sankey diagram from income sources to spending categories">
+          {L.map((p, i) => <path key={`lr${i}`} d={ribbon(XL + NW, p.y, XM, lm[i]!, p.h)} fill={p.n.color} opacity="0.35" />)}
+          {R.map((p, i) => <path key={`rr${i}`} d={ribbon(XM + NW, rm[i]!, XR, p.y, p.h)} fill={p.n.color} opacity="0.35" />)}
+          <rect x={XM} y={midTop} width={NW} height={midH} rx="3" fill="var(--h3)" />
+          {L.map((p, i) => (
+            <g key={`l${i}`}>
+              <rect x={XL} y={p.y} width={NW} height={p.h} rx="3" fill={p.n.color} />
+              <text x={XL - 8} y={p.y + p.h / 2} textAnchor="end" dominantBaseline="central" fontSize="12" fontWeight="600" fill="var(--ink)">{label(p.n)}</text>
+            </g>
+          ))}
+          {R.map((p, i) => (
+            <g key={`r${i}`}>
+              <rect x={XR} y={p.y} width={NW} height={p.h} rx="3" fill={p.n.color} />
+              <text x={XR + NW + 8} y={p.y + p.h / 2} dominantBaseline="central" fontSize="12" fontWeight="600" fill="var(--ink)">{label(p.n)}</text>
+            </g>
+          ))}
+        </svg>
+      </div>
+    </section>
   );
 }
 
@@ -174,6 +234,7 @@ export function ReportsPage() {
           <Link to="/ask" className="btn ghost">Ask Moaney about your money</Link>
           </div>
           </div>
+          <Sankey data={data} compact={compact} />
         </div>
       )}
     </>

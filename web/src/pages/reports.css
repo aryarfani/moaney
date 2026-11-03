@@ -22,9 +22,10 @@
 .legend { display: flex; justify-content: flex-end; align-items: center; gap: 6px; margin-top: 8px; font-size: 11px; color: var(--muted); }
 .legend i { width: 14px; height: 14px; border-radius: 4px; display: inline-block; }
 
-.bars { display: flex; align-items: flex-end; gap: 6px; height: 96px; }
+.bars { display: flex; align-items: flex-end; gap: 6px; height: 112px; }
 .bars .col { flex: 1; min-width: 0; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 4px; }
 .bars .col i { display: block; width: 100%; min-height: 3px; border-radius: 4px 4px 2px 2px; background: var(--h3); }
+.bars .col em { font-style: normal; font-size: 10px; font-weight: 700; color: var(--ink); white-space: nowrap; }
 .bars .col.zero i { background: var(--h0); }
 .bars .col span { font-size: 10px; font-weight: 600; color: var(--muted); white-space: nowrap; }
 
@@ -43,3 +44,6 @@
 @media (min-width: 1024px) {
   .period-pill span { min-width: 110px; }
 }
+
+.flow-scroll { overflow-x: auto; }
+.flow-scroll svg { display: block; width: 100%; min-width: 720px; height: auto; }

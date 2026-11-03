@@ -73,6 +73,8 @@ export interface Overview {
   leadingBlanks: number;
   cumulative: { current: number[]; previous: number[] } | null;
   categories: { categoryId: number; name: string; emoji: string; total: number; share: number }[];
+  /** Income grouped by category, for the money-flow diagram. */
+  incomeCategories: { categoryId: number; name: string; emoji: string; total: number }[];
 }
 
 interface Row {
@@ -152,6 +154,11 @@ export function overview(db: Db, period: Period, date: string, todayDate = jakar
   const cats = [...byCat]
     .map(([categoryId, t]) => ({ categoryId, name: meta.get(categoryId)?.name ?? 'Unknown', emoji: meta.get(categoryId)?.emoji ?? '\u{1F4E6}', total: t, share: out ? t / out : 0 }))
     .sort((a, b) => b.total - a.total);
+  const byIncome = new Map<number, number>();
+  for (const r of current) if (r.type === 'income' && r.categoryId) byIncome.set(r.categoryId, (byIncome.get(r.categoryId) ?? 0) + r.amount);
+  const incomeCategories = [...byIncome]
+    .map(([categoryId, t]) => ({ categoryId, name: meta.get(categoryId)?.name ?? 'Unknown', emoji: meta.get(categoryId)?.emoji ?? '\u{1F4B0}', total: t }))
+    .sort((a, b) => b.total - a.total);
 
   return {
     period,
@@ -171,5 +178,6 @@ export function overview(db: Db, period: Period, date: string, todayDate = jakar
     leadingBlanks,
     cumulative,
     categories: cats,
+    incomeCategories,
   };
 }
