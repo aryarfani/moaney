@@ -1,7 +1,7 @@
 /* Phone defaults: these wrappers are invisible so the mobile layout is unchanged. */
 .home-grid, .home-col, .hist-filters, .add-grid, .add-main { display: contents; }
 .desk-only, .txn-head { display: none; }
-.col-cat, .col-wallet, .col-src { display: none; }
+.col-cat, .col-wallet, .col-src, .col-act { display: none; }
 .review-card { order: 1; }
 .h-today { order: 2; }
 .h-log { order: 3; }
@@ -24,6 +24,10 @@
   .txn-head span:last-child, .txn-table .amount { text-align: right; }
   .txn-table .item .grow { grid-column: 2; }
   .col-cat, .col-wallet, .col-src { display: block; font-size: 14px; }
+  .txn-head.with-act, .txn-table .item.with-act { grid-template-columns: 40px minmax(0, 2fr) minmax(0, 1.2fr) minmax(0, 1.2fr) 90px 130px 84px; }
+  .txn-head.with-act span:last-child { text-align: center; }
+  .txn-head.with-act span:nth-last-child(2) { text-align: right; }
+  .col-act { display: flex; justify-content: center; }
   .home-main .txn-table .item { grid-template-columns: 40px minmax(0, 2fr) minmax(0, 1.2fr) 130px; }
   .home-main .txn-table .col-wallet, .home-main .txn-table .col-src { display: none; }
   .txn-table .item:hover { background: var(--bg); }

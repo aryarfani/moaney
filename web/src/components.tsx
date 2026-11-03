@@ -6,15 +6,17 @@ import { useStore } from './store';
 
 const SOURCE_LABEL: Record<string, string> = { manual: 'Manual', typed: 'Typed', notification: 'Auto', 'import:csv': 'Import' };
 
-export function TxnRow({ t, onOpen }: { t: Txn; onOpen: (t: Txn) => void }) {
+/** With `onEdit` the row becomes a div (a button can't nest the Edit button) and gains an Actions cell on desktop. */
+export function TxnRow({ t, onOpen, onEdit }: { t: Txn; onOpen: (t: Txn) => void; onEdit?: (t: Txn) => void }) {
   const { wallet, category, money } = useStore();
   const cat = category(t.categoryId);
   const isTransfer = t.type === 'transfer';
   const emoji = isTransfer ? '🔁' : cat?.emoji ?? '📦';
   const title = t.description || (isTransfer ? 'Transfer' : cat?.name) || 'Entry';
   const sub = isTransfer ? `${wallet(t.walletId)?.name} → ${wallet(t.toWalletId)?.name}` : `${cat?.name ?? ''} · ${wallet(t.walletId)?.name ?? ''}`;
+  const Tag = onEdit ? 'div' : 'button';
   return (
-    <button className="item" onClick={() => onOpen(t)}>
+    <Tag className={`item${onEdit ? ' with-act' : ''}`} onClick={() => onOpen(t)}>
       <span className="emoji" aria-hidden="true">{emoji}</span>
       <span className="grow">
         <span className="ellipsis" style={{ display: 'block', fontWeight: 700, fontSize: 15 }}>{title}</span>
@@ -24,7 +26,67 @@ export function TxnRow({ t, onOpen }: { t: Txn; onOpen: (t: Txn) => void }) {
       <span className="col-wallet ellipsis">{isTransfer ? `${wallet(t.walletId)?.name} → ${wallet(t.toWalletId)?.name}` : wallet(t.walletId)?.name ?? ''}</span>
       <span className="col-src muted">{SOURCE_LABEL[t.source] ?? t.source}</span>
       <span className={`amount ${t.type === 'income' ? 'in' : ''}`}>{t.type === 'income' ? '+' : ''}{money(t.amount)}</span>
-    </button>
+      {onEdit && (
+        <span className="col-act">
+          <button type="button" className="act-btn" aria-label={`Edit ${title}`} onClick={(e) => { e.stopPropagation(); onEdit(t); }}>✎ Edit</button>
+        </span>
+      )}
+    </Tag>
+  );
+}
+
+export interface SelectOption { value: string; label: string; emoji?: string }
+
+/** Searchable single-select (select2-style): type to filter, arrows + Enter to pick, Esc to close. The first option is the "all" choice. */
+export function SearchSelect({ value, onChange, options, allLabel, ariaLabel }: {
+  value: string; onChange: (v: string) => void; options: SelectOption[]; allLabel: string; ariaLabel: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [q, setQ] = useState('');
+  const [hi, setHi] = useState(0);
+  const box = useRef<HTMLDivElement>(null);
+  const search = useRef<HTMLInputElement>(null);
+  const all: SelectOption[] = [{ value: '', label: allLabel }, ...options];
+  const shown = all.filter((o) => o.label.toLowerCase().includes(q.trim().toLowerCase()));
+  const cur = all.find((o) => o.value === value) ?? all[0]!;
+  const close = () => { setOpen(false); setQ(''); };
+
+  useEffect(() => {
+    if (!open) return;
+    search.current?.focus();
+    const down = (e: MouseEvent) => { if (!box.current?.contains(e.target as Node)) close(); };
+    document.addEventListener('mousedown', down);
+    return () => document.removeEventListener('mousedown', down);
+  }, [open]);
+  useEffect(() => { if (open) box.current?.querySelector('[data-hi="true"]')?.scrollIntoView?.({ block: 'nearest' }); }, [hi, open]);
+
+  const pick = (o?: SelectOption) => { if (!o) return; onChange(o.value); close(); };
+  const onKey = (e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowDown') { e.preventDefault(); setHi((h) => Math.min(h + 1, shown.length - 1)); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); setHi((h) => Math.max(h - 1, 0)); }
+    else if (e.key === 'Enter') { e.preventDefault(); pick(shown[hi]); }
+    else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(); }
+  };
+
+  return (
+    <div className="ss" ref={box}>
+      <button type="button" className={`input ss-btn${value ? ' ss-on' : ''}`} aria-label={ariaLabel} aria-haspopup="listbox" aria-expanded={open} onClick={() => { setHi(Math.max(0, all.findIndex((o) => o.value === value))); if (open) close(); else setOpen(true); }}>
+        <span className="ellipsis">{cur.emoji ? `${cur.emoji} ` : ''}{cur.label}</span><span aria-hidden="true" className="ss-caret">▾</span>
+      </button>
+      {open && (
+        <div className="ss-pop">
+          <input ref={search} className="input ss-q" type="search" placeholder="Search…" aria-label={`Search ${ariaLabel.toLowerCase()}`} value={q} onChange={(e) => { setQ(e.target.value); setHi(0); }} onKeyDown={onKey} />
+          <div className="ss-list" role="listbox" aria-label={ariaLabel}>
+            {shown.map((o, i) => (
+              <button type="button" key={o.value || 'all'} role="option" aria-selected={o.value === value} data-hi={i === hi} className={`ss-opt${i === hi ? ' hi' : ''}${o.value === value ? ' sel' : ''}`} onMouseEnter={() => setHi(i)} onClick={() => pick(o)}>
+                <span className="ss-emo" aria-hidden="true">{o.emoji ?? ''}</span><span className="ellipsis">{o.label}</span>{o.value === value && <span aria-hidden="true">✓</span>}
+              </button>
+            ))}
+            {shown.length === 0 && <div className="muted small ss-none">No match</div>}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -160,7 +222,7 @@ export function TxnForm({ initial, submitLabel, onSubmit, busy, quick }: { initi
           <div className="chips" role="group" aria-label="Category">
             {cats.map((c) => (
               <button type="button" key={c.id} className={`chip ${v.categoryId === c.id ? 'on' : ''}`} aria-pressed={v.categoryId === c.id} onClick={() => set('categoryId', c.id)}>
-                <span aria-hidden="true">{c.emoji}</span>{c.name}
+                <span aria-hidden="true">{v.categoryId === c.id ? '✓' : c.emoji}</span>{c.name}
               </button>
             ))}
           </div>
@@ -183,10 +245,10 @@ export function TxnForm({ initial, submitLabel, onSubmit, busy, quick }: { initi
   );
 }
 
-export function TxnSheet({ txn, onClose, onChanged }: { txn: Txn; onClose: () => void; onChanged: () => void }) {
+export function TxnSheet({ txn, onClose, onChanged, startEditing = false }: { txn: Txn; onClose: () => void; onChanged: () => void; startEditing?: boolean }) {
   const { reload } = useStore();
   const [history, setHistory] = useState<AuditRow[]>([]);
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useState(startEditing);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
