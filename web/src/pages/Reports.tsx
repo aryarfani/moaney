@@ -214,10 +214,11 @@ export function ReportsPage() {
           </section>
 
           {data.cumulative && data.out > 0 && <Cumulative data={data} money={money} />}
+          <Sankey data={data} compact={compact} />
           </div>
           <div className="d-right">
           {data.categories.length > 0 && (
-            <section className="card" style={{ display: 'flex', flexDirection: 'column', gap: 12 }} aria-label="Where it went">
+            <section className="card m-only" style={{ display: 'flex', flexDirection: 'column', gap: 12 }} aria-label="Where it went">
               <div className="row between small"><b>Where it went</b><span className="muted">{data.categories.length} {data.categories.length === 1 ? 'category' : 'categories'}</span></div>
               {data.categories.map((c) => (
                 <div key={c.categoryId} className="cat-row">
@@ -234,7 +235,6 @@ export function ReportsPage() {
           <Link to="/ask" className="btn ghost">Ask Moaney about your money</Link>
           </div>
           </div>
-          <Sankey data={data} compact={compact} />
         </div>
       )}
     </>

@@ -20,7 +20,7 @@
   .d-reports { display: flex; flex-direction: column; gap: 20px; }
   .d-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
   .d-kpi { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; margin: 4px 0; white-space: nowrap; }
-  .d-main { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+  .d-main { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; align-items: start; }
   .d-left, .d-right { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
   .d-hide { display: none; }
   .d-reports .card { padding: 18px 20px; }
