@@ -164,6 +164,13 @@ export function SourcesPage() {
 
       <h2>Ignored words</h2>
       <div className="cap-card">
+        <div className="row between">
+          <div>
+            <b>Ignore notifications without an amount</b>
+            <div className="muted small">Dropped when no number has 3 or more digits, like promos and tips.</div>
+          </div>
+          <button className="cap-sw" role="switch" aria-checked={!!view?.ignoreNoNumber} aria-label="Ignore notifications without an amount" onClick={() => void run(() => capture.settings({ ignoreNoNumber: !view?.ignoreNoNumber }))} />
+        </div>
         <div className="muted small">Notifications containing any of these are dropped and never show up in Close the day.</div>
         <div className="chips">
           {view?.ignore.map((n) => (

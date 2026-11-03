@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { api, ApiError, type AuditRow, type Txn } from './api';
 import { decimalToMinor, formatMoney } from '../../shared/money';
 import { useStore } from './store';
@@ -33,7 +34,8 @@ export function Sheet({ title, onClose, children }: { title: string; onClose: ()
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
-  return (
+  // Portalled: inside `.screen` the desktop `> *` width cap would shrink the fixed overlay.
+  return createPortal(
     <div className="sheet-wrap" onClick={onClose}>
       <div className="sheet" role="dialog" aria-modal="true" aria-label={title} onClick={(e) => e.stopPropagation()}>
         <div className="row between">
@@ -42,8 +44,13 @@ export function Sheet({ title, onClose, children }: { title: string; onClose: ()
         </div>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
+}
+
+export function Toast({ text }: { text: string }) {
+  return createPortal(<div className="toast" role="status">{text}</div>, document.body);
 }
 
 /** Amount fields show Indonesian grouping: dot for thousands, comma for decimals ("1.250.000,5"). */

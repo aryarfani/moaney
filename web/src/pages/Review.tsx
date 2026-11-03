@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ApiError } from '../api';
 import { capture, type ReviewItem } from '../api-capture';
-import { Sheet, toInputAmount, toMinor, TxnForm } from '../components';
+import { Sheet, toInputAmount, Toast, toMinor, TxnForm } from '../components';
 import { useStore } from '../store';
 import './capture.css';
 import './desk-money.css';
@@ -28,6 +28,7 @@ export function ReviewPage() {
   const [editing, setEditing] = useState<ReviewItem | null>(null);
   const [changing, setChanging] = useState<number | null>(null);
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [ignoring, setIgnoring] = useState<{ id: number; word: string } | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -37,6 +38,11 @@ export function ReviewPage() {
     }
   }, []);
   useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    if (!note) return;
+    const t = setTimeout(() => setNote(''), 2500);
+    return () => clearTimeout(t);
+  }, [note]);
 
   async function run(fn: () => Promise<unknown>, done?: string) {
     setBusy(true);
@@ -56,7 +62,10 @@ export function ReviewPage() {
   }
 
   const left = items?.length ?? 0;
-  const selected = items?.find((i) => i.id === selectedId) ?? items?.[0];
+  // After an item leaves the queue, the selection stays at the same position (i.e. moves to the next item).
+  const selIdx = useRef(0);
+  const selected = items?.find((i) => i.id === selectedId) ?? items?.[Math.min(selIdx.current, left - 1)];
+  if (items && selected) selIdx.current = items.indexOf(selected);
   const closeDay = () => {
     if (left === 0) { nav('/'); return; }
     if (!confirm('Confirm everything that is ready as suggested? Duplicates and unreadable items stay for you.')) return;
@@ -66,7 +75,31 @@ export function ReviewPage() {
     });
   };
 
-  const titleOf = (it: ReviewItem) => (it.type === 'transfer' ? `${wallet(it.walletId)?.name ?? '?'} → ${wallet(it.toWalletId)?.name ?? '?'}` : it.description);
+  const startIgnore = (it: ReviewItem) => setIgnoring({ id: it.id, word: it.text.split(/\s+/).slice(0, 3).join(' ') });
+
+  // ↑/↓ move through the queue, ← ignores, → adds (keeps one for duplicates).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement;
+      if (editing || ignoring || e.altKey || e.ctrlKey || e.metaKey || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return;
+      if (!items || !selected || busy) return;
+      const i = items.indexOf(selected);
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        const next = items[Math.max(0, Math.min(items.length - 1, i + (e.key === 'ArrowDown' ? 1 : -1)))]!;
+        setSelectedId(next.id);
+        document.getElementById(`q-${next.id}`)?.scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'ArrowLeft') startIgnore(selected);
+      else if (e.key === 'ArrowRight') {
+        if (selected.kind === 'possible_duplicate') void run(() => capture.keepOne(selected.id), 'Kept one');
+        else setEditing(selected);
+      } else return;
+      e.preventDefault();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  });
+
+  const titleOf =(it: ReviewItem) => (it.type === 'transfer' ? `${wallet(it.walletId)?.name ?? '?'} → ${wallet(it.toWalletId)?.name ?? '?'}` : it.description);
   const renderCard = (it: ReviewItem) => (
         <Card
           key={it.id}
@@ -74,15 +107,12 @@ export function ReviewPage() {
           busy={busy}
           changing={changing === it.id}
           onChange={() => setChanging(changing === it.id ? null : it.id)}
-          onPick={(categoryId) => run(() => capture.confirm(it.id, { categoryId }))}
+          onPick={(categoryId) => run(() => capture.confirm(it.id, { categoryId }), 'Added')}
           onEdit={() => setEditing(it)}
-          onDismiss={() => void run(() => capture.dismiss(it.id))}
-          onIgnore={() => {
-            const word = prompt('Never show notifications containing:', it.text.split(/\s+/).slice(0, 3).join(' '))?.trim();
-            if (word && word.length >= 2) void run(async () => { await capture.settings({ addIgnore: word }); await capture.dismiss(it.id); });
-          }}
-          onKeepOne={() => run(() => capture.keepOne(it.id))}
-          onKeepBoth={() => run(() => capture.keepBoth(it.id))}
+          onDismiss={() => void run(() => capture.dismiss(it.id), 'Dismissed')}
+          onIgnore={() => startIgnore(it)}
+          onKeepOne={() => run(() => capture.keepOne(it.id), 'Kept one')}
+          onKeepBoth={() => run(() => capture.keepBoth(it.id), 'Kept both')}
           money={money}
           walletName={(id) => wallet(id)?.name}
           emoji={category(it.categoryId)?.emoji}
@@ -105,7 +135,7 @@ export function ReviewPage() {
         </div>
       </div>
       {error && <div className="notice" role="alert">{error}</div>}
-      {note && <div className="notice" role="status">{note}</div>}
+      {note && <Toast text={note} />}
 
       {items && items.length === 0 && (
         <div className="cap-card cap-empty">
@@ -120,8 +150,9 @@ export function ReviewPage() {
         <div className="d-split d-only">
           <div className="d-queue">
             <div className="muted small" style={{ fontWeight: 700 }}>Waiting for you</div>
+            <div className="d-list">
             {items.map((it) => (
-              <button key={it.id} type="button" className={`d-q ${selected?.id === it.id ? 'sel' : ''}`} aria-pressed={selected?.id === it.id} onClick={() => setSelectedId(it.id)}>
+              <button key={it.id} id={`q-${it.id}`} type="button" className={`d-q ${selected?.id === it.id ? 'sel' : ''}`} aria-pressed={selected?.id === it.id} onClick={() => setSelectedId(it.id)}>
                 <span className="row between">
                   <span className={`cap-tag ${TAGS[it.kind].cls}`}>{TAGS[it.kind].label}</span>
                   <span className="muted small">{hhmm(it.receivedAt)}</span>
@@ -132,7 +163,8 @@ export function ReviewPage() {
                 </span>
               </button>
             ))}
-            <div className="cap-note">“Close the day” confirms every item that is ready. Duplicates and unreadable items stay here until you decide.</div>
+            </div>
+            <div className="kbd-hint">↑ ↓ browse · ← ignore · → add</div>
           </div>
           <div className="d-detail">{selected && renderCard(selected)}</div>
         </div>
@@ -142,6 +174,25 @@ export function ReviewPage() {
         <button className="btn block m-only" disabled={busy} onClick={closeDay}>
           {left === 0 ? 'Done' : `Close the day · ${left} left`}
         </button>
+      )}
+
+      {ignoring && (
+        <Sheet title="Ignore like this" onClose={() => setIgnoring(null)}>
+          <form
+            className="stack"
+            onSubmit={(e) => {
+              e.preventDefault();
+              const word = ignoring.word.trim();
+              if (word.length < 2) return;
+              setIgnoring(null);
+              void run(async () => { await capture.settings({ addIgnore: word }); await capture.dismiss(ignoring.id); }, `Ignoring “${word}”`);
+            }}
+          >
+            <label className="muted small" htmlFor="ignore-word">Never show notifications from any app containing:</label>
+            <input id="ignore-word" className="input" autoFocus value={ignoring.word} onChange={(e) => setIgnoring({ ...ignoring, word: e.target.value })} />
+            <button className="btn block" disabled={busy || ignoring.word.trim().length < 2}>Ignore</button>
+          </form>
+        </Sheet>
       )}
 
       {editing && (
@@ -164,7 +215,7 @@ export function ReviewPage() {
               type: v.type, amount: toMinor(v.amount), walletId: v.walletId, toWalletId: v.type === 'transfer' ? v.toWalletId : null,
               categoryId: v.type === 'transfer' ? null : v.categoryId, description: v.description,
               occurredAt: v.date === editing.receivedAt.slice(0, 10) ? editing.receivedAt : v.date, note: v.note || null,
-            }))}
+            }), 'Added')}
           />
         </Sheet>
       )}

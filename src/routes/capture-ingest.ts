@@ -76,6 +76,10 @@ export function captureIngestRouter(db: Db): Router {
       res.status(202).json({ dropped: 'ignored' });
       return;
     }
+    if (getSetting(db, 'capture.ignoreNoNumber') === 'true' && !(`${input.title ?? ''} ${input.text}`.match(/\d[\d.,]*/g) ?? []).some((n) => n.replace(/\D/g, '').length >= 3)) {
+      res.status(202).json({ dropped: 'no-number' });
+      return;
+    }
     if (getSetting(db, 'capture.paused') === 'true') {
       res.status(202).json({ paused: true });
       return;

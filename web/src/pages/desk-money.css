@@ -43,13 +43,15 @@
   /* ---- Review: queue on the left, the selected item on the right */
   .cap-head { align-items: center; }
   .d-head-actions { display: flex; gap: 12px; margin-left: auto; }
-  .d-split { display: grid; grid-template-columns: 400px minmax(0, 1fr); gap: 20px; align-items: start; }
-  .d-queue { display: flex; flex-direction: column; gap: 10px; }
-  .d-q { display: flex; flex-direction: column; gap: 8px; width: 100%; text-align: left; padding: 14px 16px; border-radius: 16px; background: var(--card); border: 2px solid transparent; color: var(--ink); cursor: pointer; }
+  /* Only the queue scrolls; header and detail stay put. */
+  .d-split { display: grid; grid-template-columns: 400px minmax(0, 1fr); gap: 20px; align-items: start; height: calc(100dvh - 170px); min-height: 360px; }
+  .d-queue { display: flex; flex-direction: column; gap: 8px; height: 100%; min-height: 0; }
+  .d-list { display: flex; flex-direction: column; gap: 8px; flex: 1; min-height: 0; overflow-y: auto; padding: 2px 4px 2px 2px; }
+  .d-q { display: flex; flex-direction: column; gap: 4px; width: 100%; flex: none; text-align: left; padding: 10px 14px; border-radius: 14px; background: var(--card); border: 2px solid transparent; color: var(--ink); cursor: pointer; }
   .d-q.sel { border-color: var(--accent); }
   .d-q:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
-  .d-detail { position: sticky; top: 28px; }
-  .d-detail .cap-card { padding: 20px; }
+  .d-detail .cap-card { padding: 14px 16px; }
+  .kbd-hint { font-size: 12px; color: var(--muted); }
 
   /* ---- Wallets: total beside the shortcuts, wallets as cards */
   .d-wtop { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 20px; align-items: stretch; }

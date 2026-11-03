@@ -53,6 +53,7 @@ export function captureRouter(db: Db): Router {
       ...sourcesView(db),
       devices: db.select({ id: devices.id, name: devices.name, lastSeenAt: devices.lastSeenAt, createdAt: devices.createdAt }).from(devices).all(),
       paused: getSetting(db, 'capture.paused') === 'true',
+      ignoreNoNumber: getSetting(db, 'capture.ignoreNoNumber') === 'true',
       names: ownNames(db),
       ignore: ignoreWords(db),
       retentionDays: retentionDays(db),
@@ -77,6 +78,7 @@ export function captureRouter(db: Db): Router {
   r.put('/capture/settings', (req, res) => {
     const b = z.object({
       paused: z.boolean().optional(),
+      ignoreNoNumber: z.boolean().optional(),
       retentionDays: z.union([z.literal(7), z.literal(30), z.literal(90)]).optional(),
       addName: z.string().trim().min(1).max(80).optional(),
       removeName: z.string().max(80).optional(),
@@ -89,6 +91,7 @@ export function captureRouter(db: Db): Router {
       setSetting(db, 'capture.ignore', JSON.stringify(words));
     }
     if (b.paused !== undefined) setSetting(db, 'capture.paused', String(b.paused));
+    if (b.ignoreNoNumber !== undefined) setSetting(db, 'capture.ignoreNoNumber', String(b.ignoreNoNumber));
     if (b.retentionDays !== undefined) setSetting(db, 'capture.retentionDays', String(b.retentionDays));
     if (b.addName || b.removeName) {
       const names = ownNames(db).filter((n) => n !== b.removeName);

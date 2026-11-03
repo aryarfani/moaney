@@ -50,6 +50,7 @@ export interface SourcesView {
   devices: Device[];
   lastNotificationAt: string | null;
   paused: boolean;
+  ignoreNoNumber: boolean;
   names: string[];
   ignore: string[];
   retentionDays: number;
@@ -81,7 +82,7 @@ export const capture = {
   pairDevice: (name: string) => call<{ id: number; name: string; token: string }>('POST', '/capture/device', { name }),
   removeDevice: (id: number) => call('DELETE', `/capture/device/${id}`),
   mapWallet: (sourceId: number, walletId: number | null) => call('PATCH', `/capture/sources/${sourceId}`, { walletId }),
-  settings: (body: { paused?: boolean; retentionDays?: 7 | 30 | 90; addName?: string; removeName?: string; addIgnore?: string; removeIgnore?: string }) =>
+  settings: (body: { paused?: boolean; ignoreNoNumber?: boolean; retentionDays?: 7 | 30 | 90; addName?: string; removeName?: string; addIgnore?: string; removeIgnore?: string }) =>
     call<{ paused: boolean; names: string[]; retentionDays: number }>('PUT', '/capture/settings', body),
   rules: () => call<RulesView>('GET', '/rules'),
   approveRule: (id: number) => call('POST', `/rules/${id}/approve`),
