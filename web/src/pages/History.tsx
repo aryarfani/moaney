@@ -6,6 +6,13 @@ import './desk-main.css';
 
 const PAGE = 100;
 
+const SORTS: [string, string][] = [
+  ['date_desc', 'Newest first'], ['date_asc', 'Oldest first'], ['amount_desc', 'Amount: high to low'], ['amount_asc', 'Amount: low to high'],
+  ['description_asc', 'Description: A to Z'], ['description_desc', 'Description: Z to A'],
+];
+const GROUP_KEY = 'moaney.history.group';
+const readGroup = () => { try { return localStorage.getItem(GROUP_KEY) !== '0'; } catch { return true; } };
+
 function dayLabel(d: string): string {
   return new Date(`${d}T00:00:00Z`).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
 }
@@ -18,11 +25,25 @@ export function HistoryPage() {
   const [walletId, setWalletId] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [type, setType] = useState('');
+  const [group, setGroupState] = useState(readGroup);
+  const [sort, setSort] = useState('date_desc');
   const [open, setOpen] = useState<Txn | null>(null);
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState('');
 
-  const query = useMemo(() => ({ q, wallet: walletId, category: categoryId, type }), [q, walletId, categoryId, type]);
+  // Sorting by anything but date can't be grouped by day, so grouped always means newest first.
+  const query = useMemo(() => ({ q, wallet: walletId, category: categoryId, type, sort: group ? 'date_desc' : sort }), [q, walletId, categoryId, type, group, sort]);
+  const setGroup = (on: boolean) => {
+    setGroupState(on);
+    if (on) setSort('date_desc');
+    try { localStorage.setItem(GROUP_KEY, on ? '1' : '0'); } catch { /* per-viewer convenience only */ }
+  };
+  const sortBy = (key: 'amount' | 'description') => {
+    const first = key === 'amount' ? 'desc' : 'asc';
+    setSort(sort.startsWith(key) ? `${key}_${sort.endsWith('desc') ? 'asc' : 'desc'}` : `${key}_${first}`);
+    setGroup(false);
+  };
+  const arrow = (key: string) => (!group && sort.startsWith(key) ? (sort.endsWith('desc') ? ' ▼' : ' ▲') : '');
 
   const load = useCallback(async (offset: number, replace: boolean) => {
     try {
@@ -68,13 +89,31 @@ export function HistoryPage() {
           <button key={v} aria-pressed={type === v} onClick={() => setType(v!)}>{label}</button>
         ))}
       </div>
+      <div className="seg" role="group" aria-label="Layout">
+        <button aria-pressed={group} onClick={() => setGroup(true)}>By date</button>
+        <button aria-pressed={!group} onClick={() => setGroup(false)}>Flat list</button>
+      </div>
+      {!group && (
+        <select className="input hist-sort" aria-label="Sort" value={sort} onChange={(e) => setSort(e.target.value)}>
+          {SORTS.map(([v, label]) => <option key={v} value={v}>{label}</option>)}
+        </select>
+      )}
       </div>
       {error && <div className="notice" role="alert">{error}</div>}
       {days.length === 0 && !error && <div className="card muted" style={{ textAlign: 'center' }}>No entries match.</div>}
       {days.length > 0 && (
-        <div className="txn-head with-act" aria-hidden="true"><span /><span>Description</span><span>Category</span><span>Wallet</span><span>Source</span><span>Amount</span><span>Actions</span></div>
+        <div className="txn-head with-act" aria-hidden={group || undefined}>
+          <span />
+          {group ? <span>Description</span> : <button className="th" onClick={() => sortBy('description')}>Description{arrow('description')}</button>}
+          <span>Category</span><span>Wallet</span><span>Source</span>
+          {group ? <span>Amount</span> : <button className="th" onClick={() => sortBy('amount')}>Amount{arrow('amount')}</button>}
+          <span>Actions</span>
+        </div>
       )}
-      {days.map((d) => (
+      {!group && rows.length > 0 && (
+        <div className="card flush txn-table" style={{ marginTop: 6 }}>{rows.map((t) => <TxnRow key={t.id} t={t} showDate onOpen={(x) => { setEditing(false); setOpen(x); }} onEdit={(x) => { setEditing(true); setOpen(x); }} />)}</div>
+      )}
+      {group && days.map((d) => (
         <section key={d.date} aria-label={dayLabel(d.date)}>
           <div className="day"><span>{dayLabel(d.date)}</span><span className="num">{d.spent ? money(d.spent) : ''}</span></div>
           <div className="card flush txn-table" style={{ marginTop: 6 }}>{d.items.map((t) => <TxnRow key={t.id} t={t} onOpen={(x) => { setEditing(false); setOpen(x); }} onEdit={(x) => { setEditing(true); setOpen(x); }} />)}</div>

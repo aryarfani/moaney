@@ -87,6 +87,19 @@ describe('transactions API', () => {
     expect((await agent.get('/api/v1/reports/summary')).body.today.count).toBeGreaterThanOrEqual(0);
   });
 
+  it('sorts the list by amount across the whole set, not per page', async () => {
+    const { agent, post } = await boot();
+    const wallets = (await agent.get('/api/v1/wallets')).body as { id: number; name: string }[];
+    const cats = (await agent.get('/api/v1/categories')).body as { id: number; name: string }[];
+    const base = { type: 'expense', walletId: wallets.find((w) => w.name === 'Cash')!.id, categoryId: cats.find((c) => c.name === 'My Food')!.id };
+    for (const [amount, description] of [[500_000, 'b'], [9_000_000, 'a'], [100_000, 'c']] as const) await post('/api/v1/transactions', { ...base, amount, description });
+    const amounts = async (qs: string) => ((await agent.get(`/api/v1/transactions?${qs}`)).body as { amount: number }[]).map((t) => t.amount);
+    expect(await amounts('sort=amount_desc&limit=2')).toEqual([9_000_000, 500_000]);
+    expect(await amounts('sort=amount_asc')).toEqual([100_000, 500_000, 9_000_000]);
+    expect(((await agent.get('/api/v1/transactions?sort=description_asc')).body as { description: string }[]).map((t) => t.description)).toEqual(['a', 'b', 'c']);
+    expect((await agent.get('/api/v1/transactions?sort=nope')).status).toBe(400);
+  });
+
   it('rejects invalid bodies with 400', async () => {
     const { post } = await boot();
     expect((await post('/api/v1/transactions', { type: 'expense', amount: -5, walletId: 1 })).status).toBe(400);

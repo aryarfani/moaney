@@ -26,7 +26,8 @@
   .col-cat, .col-wallet, .col-src { display: block; font-size: 14px; }
   .txn-head.with-act, .txn-table .item.with-act { grid-template-columns: 40px minmax(0, 2fr) minmax(0, 1.2fr) minmax(0, 1.2fr) 90px 130px 84px; }
   .txn-head.with-act span:last-child { text-align: center; }
-  .txn-head.with-act span:nth-last-child(2) { text-align: right; }
+  .txn-head.with-act span:nth-last-child(2), .txn-head.with-act .th:nth-last-child(2) { text-align: right; }
+  .hist-filters > select.hist-sort { flex: 0 1 220px; }
   .col-act { display: flex; justify-content: center; }
   .home-main .txn-table .item { grid-template-columns: 40px minmax(0, 2fr) minmax(0, 1.2fr) 130px; }
   .home-main .txn-table .col-wallet, .home-main .txn-table .col-src { display: none; }

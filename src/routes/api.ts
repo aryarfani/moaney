@@ -1,4 +1,4 @@
-import { and, count, desc, eq, gte, like, lte, or, type SQL } from 'drizzle-orm';
+import { and, asc, count, desc, eq, gte, like, lte, or, sql, type SQL } from 'drizzle-orm';
 import { Router, type NextFunction, type Request, type Response } from 'express';
 import { z } from 'zod';
 import { categoryInput, categoryPatch, transactionInput, transactionPatch, walletInput, walletPatch } from '../../shared/schemas.js';
@@ -30,7 +30,18 @@ const listQuery = z.object({
   q: z.string().max(100).optional(),
   limit: z.coerce.number().int().min(1).max(500).default(100),
   offset: z.coerce.number().int().min(0).default(0),
+  sort: z.enum(['date_desc', 'date_asc', 'amount_desc', 'amount_asc', 'description_asc', 'description_desc']).default('date_desc'),
 });
+
+// Ties fall back to newest first so paging stays stable.
+const ORDER = {
+  date_desc: [desc(transactions.occurredAt), desc(transactions.id)],
+  date_asc: [asc(transactions.occurredAt), asc(transactions.id)],
+  amount_desc: [desc(transactions.amount), desc(transactions.occurredAt), desc(transactions.id)],
+  amount_asc: [asc(transactions.amount), desc(transactions.occurredAt), desc(transactions.id)],
+  description_asc: [asc(sql`lower(${transactions.description})`), desc(transactions.occurredAt), desc(transactions.id)],
+  description_desc: [desc(sql`lower(${transactions.description})`), desc(transactions.occurredAt), desc(transactions.id)],
+} as const;
 
 export function apiRouter(db: Db): Router {
   const r = Router();
@@ -87,7 +98,7 @@ export function apiRouter(db: Db): Router {
     if (q.type) where.push(eq(transactions.type, q.type));
     if (q.q) where.push(like(transactions.description, `%${q.q.replace(/[%_]/g, '')}%`));
     const rows = db.select().from(transactions).where(and(...where))
-      .orderBy(desc(transactions.occurredAt), desc(transactions.id)).limit(q.limit).offset(q.offset).all();
+      .orderBy(...ORDER[q.sort]).limit(q.limit).offset(q.offset).all();
     res.json(rows);
   });
   r.get('/transactions/:id', (req, res) => {

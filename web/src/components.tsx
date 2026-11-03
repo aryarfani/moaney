@@ -7,7 +7,7 @@ import { useStore } from './store';
 const SOURCE_LABEL: Record<string, string> = { manual: 'Manual', typed: 'Typed', notification: 'Auto', 'import:csv': 'Import' };
 
 /** With `onEdit` the row becomes a div (a button can't nest the Edit button) and gains an Actions cell on desktop. */
-export function TxnRow({ t, onOpen, onEdit }: { t: Txn; onOpen: (t: Txn) => void; onEdit?: (t: Txn) => void }) {
+export function TxnRow({ t, onOpen, onEdit, showDate }: { t: Txn; onOpen: (t: Txn) => void; onEdit?: (t: Txn) => void; showDate?: boolean }) {
   const { wallet, category, money } = useStore();
   const cat = category(t.categoryId);
   const isTransfer = t.type === 'transfer';
@@ -15,12 +15,13 @@ export function TxnRow({ t, onOpen, onEdit }: { t: Txn; onOpen: (t: Txn) => void
   const title = t.description || (isTransfer ? 'Transfer' : cat?.name) || 'Entry';
   const sub = isTransfer ? `${wallet(t.walletId)?.name} → ${wallet(t.toWalletId)?.name}` : `${cat?.name ?? ''} · ${wallet(t.walletId)?.name ?? ''}`;
   const Tag = onEdit ? 'div' : 'button';
+  const date = showDate ? `${new Date(`${t.localDate}T00:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })} · ` : '';
   return (
     <Tag className={`item${onEdit ? ' with-act' : ''}`} onClick={() => onOpen(t)}>
       <span className="emoji" aria-hidden="true">{emoji}</span>
       <span className="grow">
         <span className="ellipsis" style={{ display: 'block', fontWeight: 700, fontSize: 15 }}>{title}</span>
-        <span className="muted small ellipsis" style={{ display: 'block' }}>{sub}{t.source.startsWith('import') ? ' · import' : ''}</span>
+        <span className="muted small ellipsis" style={{ display: 'block' }}>{date}{sub}{t.source.startsWith('import') ? ' · import' : ''}</span>
       </span>
       <span className="col-cat ellipsis">{isTransfer ? 'Transfer' : cat?.name ?? ''}</span>
       <span className="col-wallet ellipsis">{isTransfer ? `${wallet(t.walletId)?.name} → ${wallet(t.toWalletId)?.name}` : wallet(t.walletId)?.name ?? ''}</span>
