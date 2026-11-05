@@ -6,6 +6,16 @@ import { useStore } from '../store';
 import './desk-main.css';
 
 const today = () => new Date(Date.now() + 7 * 3600_000).toISOString().slice(0, 10);
+const bad = (p: Proposal) => p.amount === null || p.problems.length > 0 || !p.walletId || (p.type === 'transfer' ? !p.toWalletId : !p.categoryId);
+
+type EntryKey = Pick<KeyboardEvent, 'key' | 'shiftKey' | 'ctrlKey' | 'altKey' | 'metaKey' | 'repeat' | 'isComposing'>;
+const isEntryEnter = (e: EntryKey) => e.key === 'Enter' && !e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey && !e.isComposing;
+
+export function typedEntryAction(e: EntryKey, text: string, proposals: Proposal[], busy: boolean): 'read' | 'save' | null {
+  if (!isEntryEnter(e) || e.repeat || busy || !text.trim()) return null;
+  if (proposals.length === 0) return 'read';
+  return proposals.some(bad) ? null : 'save';
+}
 
 export function AddPage() {
   const { wallets, categories, money, wallet, category, reload } = useStore();
@@ -18,7 +28,6 @@ export function AddPage() {
 
   const real = wallets.filter((w) => w.kind !== 'history' && !w.archived);
   const defaultWallet = (real.find((w) => w.kind === 'cash') ?? real[0])?.id ?? 0;
-  const bad = (p: Proposal) => p.amount === null || p.problems.length > 0 || !p.walletId || (p.type === 'transfer' ? !p.toWalletId : !p.categoryId);
 
   async function parse() {
     setBusy(true);
@@ -63,7 +72,16 @@ export function AddPage() {
           <div className="add-main">
           <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <label htmlFor="free" className="muted small" style={{ fontWeight: 700 }}>Type one or more payments</label>
-            <textarea id="free" className="input" value={text} onChange={(e) => { setText(e.target.value); setProposals([]); }} placeholder="kopi 28k gopay dan parkir 3k" />
+            <textarea id="free" className="input" value={text} onChange={(e) => { setText(e.target.value); setProposals([]); }}
+              aria-describedby="entry-keyboard-hint"
+              onKeyDown={(e) => {
+                if (isEntryEnter(e.nativeEvent)) e.preventDefault();
+                const action = typedEntryAction(e.nativeEvent, text, proposals, busy);
+                if (action === 'read') void parse();
+                if (action === 'save') void save(proposals);
+              }}
+              placeholder="kopi 28k gopay dan parkir 3k" />
+            <div id="entry-keyboard-hint" className="muted small">Enter to read · Enter again to save · Shift+Enter for a new line</div>
             <div className="muted small">Examples: nasbung 16k · nasbung 16k @2 (two entries) · nasbung 16k x2 (one entry, 32k) · gaji 8jt bca</div>
             <button className="btn" disabled={!text.trim() || busy} onClick={parse}>Read it</button>
           </div>
