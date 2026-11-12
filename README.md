@@ -1,7 +1,7 @@
 # Moaney
 
 Self-hosted, single-user personal finance app. Spec: [PERSONAL_FINANCE_SPEC.md](PERSONAL_FINANCE_SPEC.md).
-This repo currently implements **M0 (foundation) and M1 (ledger and manual capture)**. No notification ingest, LLM, or MCP yet.
+Includes the ledger, reports, planning, notification review, investment tracking, and an optional authenticated MCP integration. See [MCP setup and tools](docs/mcp.md) to connect ChatGPT, Claude, or Codex.
 
 One Node 22 + TypeScript Express process serves the REST API and the Vite + React PWA, backed by SQLite (WAL) through Drizzle.
 

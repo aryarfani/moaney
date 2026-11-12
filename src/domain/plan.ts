@@ -59,14 +59,14 @@ export function categoriesOverview(db: Db, month: string) {
   }));
 }
 
-export function payBill(db: Db, id: number, paidOn = today()) {
+export function payBill(db: Db, id: number, paidOn = today(), actor = 'owner', source: 'manual' | 'mcp' = 'manual') {
   return db.transaction((tx) => {
     const bill = tx.select().from(bills).where(eq(bills.id, id)).get();
     if (!bill) throw new LedgerError('Bill not found', 404);
     const txn = createTransaction(tx as unknown as Db, {
       type: 'expense', amount: bill.amount, walletId: bill.walletId, categoryId: bill.categoryId,
-      description: bill.name, occurredAt: paidOn, source: 'manual',
-    });
+      description: bill.name, occurredAt: paidOn, source,
+    }, actor);
     const updated = tx.update(bills).set({ nextDue: addMonths(bill.nextDue, 1) }).where(eq(bills.id, id)).returning().get();
     return { bill: updated, transaction: txn };
   });

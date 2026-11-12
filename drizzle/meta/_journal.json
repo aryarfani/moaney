@@ -15,6 +15,13 @@
       "when": 1793357782227,
       "tag": "0001_light_iceman",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1794466167669,
+      "tag": "0002_sour_molecule_man",
+      "breakpoints": true
     }
   ]
 }

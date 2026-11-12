@@ -4,7 +4,7 @@ import { api, ApiError, type AuditRow, type Txn } from './api';
 import { decimalToMinor, formatMoney } from '../../shared/money';
 import { useStore } from './store';
 
-const SOURCE_LABEL: Record<string, string> = { manual: 'Manual', typed: 'Typed', notification: 'Auto', 'import:csv': 'Import' };
+const SOURCE_LABEL: Record<string, string> = { manual: 'Manual', typed: 'Typed', notification: 'Auto', 'import:csv': 'Import', mcp: 'MCP' };
 
 /** With `onEdit` the row becomes a div (a button can't nest the Edit button) and gains an Actions cell on desktop. */
 export function TxnRow({ t, onOpen, onEdit, showDate }: { t: Txn; onOpen: (t: Txn) => void; onEdit?: (t: Txn) => void; showDate?: boolean }) {

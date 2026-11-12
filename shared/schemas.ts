@@ -17,7 +17,7 @@ export const transactionInput = z.object({
   description: z.string().trim().max(200).default(''),
   note: z.string().trim().max(1000).nullish(),
   occurredAt: occurredAt.optional(),
-  source: z.enum(['manual', 'typed', 'import:csv', 'notification']).default('manual'),
+  source: z.enum(['manual', 'typed', 'import:csv', 'notification', 'mcp']).default('manual'),
   externalId: z.string().trim().max(100).nullish(),
 });
 export type TransactionInput = z.infer<typeof transactionInput>;

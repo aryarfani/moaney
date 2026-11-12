@@ -3,6 +3,12 @@ import { index, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 
 const now = sql`(strftime('%Y-%m-%dT%H:%M:%SZ','now'))`;
 
+export const mcpRecords = sqliteTable('mcp_records', {
+  key: text('key').primaryKey(),
+  value: text('value').notNull(),
+  expiresAt: integer('expires_at'),
+});
+
 export const sessions = sqliteTable('sessions', {
   idHash: text('id_hash').primaryKey(),
   csrf: text('csrf').notNull(),

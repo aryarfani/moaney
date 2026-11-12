@@ -356,10 +356,10 @@ function pendingRow(db: Db, id: number): NotifRow {
   return row;
 }
 
-function record(db: Db, row: NotifRow, item: ReviewItem, input: TransactionInput) {
+function record(db: Db, row: NotifRow, item: ReviewItem, input: TransactionInput, actor = 'owner') {
   return db.transaction((tx) => {
     const t = tx as unknown as Db;
-    const created = createTransaction(t, input);
+    const created = createTransaction(t, input, actor);
     markDone(t, rowsOf(t, row), 'confirmed', created.id);
     if (input.type !== 'transfer' && input.categoryId) learn(t, item, input.categoryId);
     advanceBill(t, row.billId);
@@ -367,7 +367,7 @@ function record(db: Db, row: NotifRow, item: ReviewItem, input: TransactionInput
   });
 }
 
-export function confirmNotification(db: Db, id: number, ov: Override = {}) {
+export function confirmNotification(db: Db, id: number, ov: Override = {}, actor = 'owner') {
   const row = pendingRow(db, id);
   const item = buildItem(db, row);
   if (item.kind === 'unreadable') throw new LedgerError('This one needs details. Open Edit to fill them in.');
@@ -386,14 +386,14 @@ export function confirmNotification(db: Db, id: number, ov: Override = {}) {
     if (!categoryId) throw new LedgerError('Pick a category');
     input = { ...base, type: item.type, walletId, categoryId, description: (ov.description ?? item.description).slice(0, 200) };
   }
-  return record(db, row, item, input);
+  return record(db, row, item, input, actor);
 }
 
 /** The user edited the entry in the form: record exactly what they sent. */
-export function confirmEdited(db: Db, id: number, body: TransactionInput) {
+export function confirmEdited(db: Db, id: number, body: TransactionInput, actor = 'owner') {
   const row = pendingRow(db, id);
   const item = buildItem(db, row);
-  return record(db, row, item, { ...body, source: 'notification', externalId: `notif-${row.id}` });
+  return record(db, row, item, { ...body, source: 'notification', externalId: `notif-${row.id}` }, actor);
 }
 
 export function dismissNotification(db: Db, id: number): void {
@@ -409,12 +409,12 @@ export function keepBoth(db: Db, id: number): void {
 }
 
 /** "Keep one": record the earlier notification, drop the repeat. */
-export function keepOne(db: Db, id: number) {
+export function keepOne(db: Db, id: number, actor = 'owner') {
   const row = pendingRow(db, id);
   if (row.kind !== 'possible_duplicate' || !row.pairId) throw new LedgerError('Not flagged as a duplicate');
   const older = db.select().from(notifications).where(eq(notifications.id, row.pairId)).get();
   db.update(notifications).set({ kind: row.direction === 'in' ? 'new_income' : 'new_payment', pairId: null }).where(eq(notifications.id, id)).run();
-  const txn = older && older.status === 'pending' ? confirmNotification(db, older.id) : null;
+  const txn = older && older.status === 'pending' ? confirmNotification(db, older.id, {}, actor) : null;
   dismissNotification(db, id);
   return txn;
 }

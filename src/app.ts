@@ -8,6 +8,7 @@ import type { DbHandle } from './db/client.js';
 import { WEB_DIR } from './paths.js';
 import { apiRouter, errorHandler } from './routes/api.js';
 import { captureIngestRouter } from './routes/capture-ingest.js';
+import { mountMcp } from './mcp/server.js';
 
 export function createApp(handle: DbHandle, config: Config, webRoot = WEB_DIR): Express {
   const { db, raw } = handle;
@@ -27,8 +28,12 @@ export function createApp(handle: DbHandle, config: Config, webRoot = WEB_DIR): 
   });
   // The phone's automation app may send malformed JSON; read the raw text and let the route be forgiving.
   app.use('/api/v1/capture/notifications', express.text({ type: () => true, limit: '64kb' }));
+  app.use('/mcp', express.json({ limit: '1mb' }));
+  app.use('/oauth', express.json({ limit: '16kb' }));
   app.use(express.json({ limit: '25mb' }));
   app.use(cookieParser());
+
+  if (config.MCP_PUBLIC_URL) mountMcp(app, handle, config);
 
   app.get('/health', (_req, res) => {
     try {
