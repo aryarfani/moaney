@@ -32,7 +32,7 @@ An unauthenticated POST to `/mcp` returns 401 and a `WWW-Authenticate` discovery
 
 Server URL: `https://moaney.arfani.my.id/mcp`
 
-- **ChatGPT:** add a custom remote MCP connection using this URL and OAuth. When the host offers registration options, use automatic/dynamic registration. Open the Moaney consent page, verify its application name and return address, and approve the requested access yourself. [Official OpenAI authentication documentation](https://developers.openai.com/plugins/build/auth).
+- **ChatGPT:** open **Plugins → Add → Add custom MCP server**, enter this URL, and select OAuth. In **Advanced OAuth settings**, use **Dynamic Client Registration (DCR)** with `moaney:read` and `moaney:write`, create the private plugin, then connect it. Open the Moaney consent page, verify its application name and return address, and approve the requested access yourself. Use **Try in chat** or mention `@Moaney` to use its tools. The current web UI does not require the former developer-mode toggle. [Official custom MCP setup](https://developers.openai.com/api/docs/guides/custom-mcp-server).
 - **Claude:** add a custom remote connector using the same URL. If choosing an OAuth client mode, select **Register automatically**. This initial implementation supports Dynamic Client Registration, not fetching a published client identity document. Claude's cloud must be able to reach the HTTPS endpoint. [Official Claude connector guide](https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp).
 - **Codex:** add the remote HTTP server, then complete OAuth yourself:
 
@@ -158,4 +158,6 @@ Transactions created directly by MCP are labeled **MCP** in History. Phone-captu
 
 Development tests use disposable SQLite databases. They exercise OAuth rejection paths, scopes, resource binding, standard SDK-over-HTTP interoperability, all operation families, preview rollback, atomic batches, stale/expired drafts, source-ID checks and receipts after database reopen. Run `npm test`, `npm run lint`, `npm run typecheck`, and `npm run build` before deployment.
 
-Actual account linking with ChatGPT, Claude and Codex is a post-deployment owner action. It has not been performed merely by adding this code. Published-identity metadata (CIMD), delegated users, market-price retrieval, real banking/broker execution and permanent deletion are outside this implementation.
+Production was deployed on 2026-11-12 at revision `42f115bf39899ffd2c30cf2c8d92f9054d3271cd`, after an integrity-checked database backup. ChatGPT web in Chrome completed DCR and OAuth, read live context, checked duplicates, previewed one user-authorized Rp1 Cash expense, and saved it after explicit preview approval and the host's **Allow once** write confirmation. Independent production verification found exactly one posted transaction (`4846`, description `MCP connection test`, source `mcp`, category `Debt/Other`), balanced journal lines, and the MCP client audit actor. The total transaction count increased from 4,845 to 4,846. This test entry remains in the real database.
+
+Claude and Codex account linking has not been tested. Published-identity metadata (CIMD), delegated users, market-price retrieval, real banking/broker execution and permanent deletion are outside this implementation.
